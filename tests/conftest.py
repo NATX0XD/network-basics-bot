@@ -10,7 +10,7 @@ import pytest
 
 from app.config import settings
 
-NETWORK_TESTS = {"test_book", "test_extract_book"}
+NETWORK_TESTS = {"test_book", "test_extract_book", "test_exercises"}
 
 
 @pytest.fixture(autouse=True)

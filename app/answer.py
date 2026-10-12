@@ -228,6 +228,11 @@ class Answer:
     # The question this chat is on, to be passed back as `previous` with the
     # next message; only the book path fills this.
     topic: str | None = None
+    # The end-of-chapter test this answer leads to; only the book path fills
+    # this. Either a chapter's test ({chapter, title, parts, ..., open}: `open`
+    # false is an offer under an ordinary answer, true is the test itself) or
+    # {menu: [...]} when the asker has still to say which chapter.
+    exercise: dict | None = None
 
     @property
     def disclaimer(self) -> str:
@@ -256,7 +261,7 @@ class Answer:
         body = self.text.strip()
         if len(body) > settings.max_answer_chars:
             body = body[:settings.max_answer_chars].rstrip() + " …"
-        if self.source in ("book", "model"):
+        if self.source in ("book", "model", "exercise"):
             return self.for_line_from_the_book(body)
         messages = [{"type": "text", "text": f"{body}\n\n{self.disclaimer}"}]
         if self.citations:
@@ -281,7 +286,7 @@ class Answer:
         if self.citations:
             messages = [answer_message(breakable(body), self.citations,
                                        in_scope=self.in_scope, source=self.source)]
-        elif self.in_scope:
+        elif self.in_scope and self.source != "exercise":
             messages = [{"type": "text",
                          "text": breakable(f"{body}\n\n{self.disclaimer}")}]
         else:
@@ -710,22 +715,26 @@ def inspect(text: str, hits: list[Hit]) -> list[Fault]:
 
 
 async def answer_question(question: str, previous: str | None = None,
-                          previous_answer: str | None = None) -> Answer:
+                          previous_answer: str | None = None,
+                          chapter: int | None = None) -> Answer:
     """Answer from whichever dataset this deployment serves.
 
     `previous` is the asker's last question and `previous_answer` what it was
     given, if the caller kept them. Only the book path reads them, to make
     sense of "อยากรู้เพิ่มเติมอีก" and to go on rather than say it all again.
+    `chapter` is the chapter that answer was written from, so that "ทำแบบฝึกหัด"
+    with no chapter named means that chapter's test.
     """
     if settings.dataset == "network":
-        return await answer_from_book(question, previous, previous_answer)
+        return await answer_from_book(question, previous, previous_answer, chapter)
     if settings.dataset == "ksp":
         return await answer_from_rules(question)
     raise RuntimeError(f"DATASET={settings.dataset!r} -- ต้องเป็น network หรือ ksp")
 
 
 async def answer_from_book(question: str, previous: str | None = None,
-                           previous_answer: str | None = None) -> Answer:
+                           previous_answer: str | None = None,
+                           chapter: int | None = None) -> Answer:
     question = (question or "").strip()
     if not question:
         return Answer(text=book.EMPTY, in_scope=False, source="book")
@@ -733,7 +742,7 @@ async def answer_from_book(question: str, previous: str | None = None,
     if canned:
         log.info("SMALLTALK | %r", question[:60])
         return Answer(text=canned, in_scope=False, source="book")
-    return await book.answer(question, previous, previous_answer)
+    return await book.answer(question, previous, previous_answer, chapter)
 
 
 async def answer_from_rules(question: str) -> Answer:

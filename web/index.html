@@ -9,6 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // before the first paint, so a reader who chose the dark theme never sees a white page
+  try {
+    if (JSON.parse(localStorage.getItem('network-bot-settings')).theme === 'dark')
+      document.documentElement.dataset.theme = 'dark';
+  } catch (e) {}
+</script>
 <style>
   /* Palette taken from assets/network/logo.html, the bot's LINE profile
      picture, so the web chat and the LINE account read as the same product.
@@ -16,22 +23,63 @@
   :root {
     --page:   #eef3f7;
     --card:   #ffffff;
+    --soft:   #f6f9fb;          /* a surface one step off the card */
+    --soft-2: #e9f0f6;
     --ink:    #101a24;
+    --ink-2:  #3f434b;
     --muted:  #6b7a89;
     --faint:  #a3b0bd;
     --line:   #dfe7ee;
+    --line-2: #b9d7ec;          /* a border that is hovered or focused */
     --accent: #0b4f8a;          /* the blue field of the logo */
+    --accent-ink: #0b4f8a;      /* the same blue where it is text, not a field */
     --accent-2:#12b5cb;         /* the cyan of its nodes */
     --cream:  #dff5f9;          /* the pale cyan of its links */
     --accent-soft: #eaf4fb;
     --warn:   #b45309;
     --warn-bg:#fffbeb;
+    --warn-line:#f3e2b8;
+    --warn-ink:#7a5310;
     --ok:     #16a34a;
+    --danger: #c0392b;
+    --btn:    #101a24;
+    --btn-hover:#1c2a38;
+    --glass:  rgba(255,255,255,.82);
+    --glass-strong: rgba(255,255,255,.97);
     --line-green: #06c755;      /* LINE's own brand green */
     --r-lg: 20px;
     --r-md: 14px;
     --r-sm: 10px;
+    color-scheme: light;
   }
+  /* The dark theme changes the values above and nothing else: every rule
+     below reads a variable, so there is one list to keep right. The pages of
+     the book stay white paper in both. */
+  :root[data-theme="dark"] {
+    --page:   #0b1118;
+    --card:   #141d27;
+    --soft:   #1a2531;
+    --soft-2: #223041;
+    --ink:    #e6edf3;
+    --ink-2:  #c5d0db;
+    --muted:  #93a1b0;
+    --faint:  #6f7f8f;
+    --line:   #263442;
+    --line-2: #3a6a8f;
+    --accent: #1f6fb5;
+    --accent-ink: #7cc4f5;
+    --accent-soft: #16324a;
+    --warn-bg:#2a2210;
+    --warn-line:#5a4a1c;
+    --warn-ink:#e7c77a;
+    --danger: #ff8a7a;
+    --btn:    #2a3948;
+    --btn-hover:#344759;
+    --glass:  rgba(20,29,39,.86);
+    --glass-strong: rgba(16,24,33,.97);
+    color-scheme: dark;
+  }
+  :root[data-theme="dark"] .main::after { opacity: .35; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
@@ -63,22 +111,22 @@
 
   .search { position: relative; margin-bottom: 14px; }
   .search input {
-    width: 100%; border: 1px solid var(--line); background: #fbfbfc;
+    width: 100%; border: 1px solid var(--line); background: var(--soft);
     border-radius: var(--r-md); padding: 9px 12px 9px 32px;
     font: inherit; font-size: 13.5px; color: var(--ink); outline: none;
   }
-  .search input:focus { border-color: #b9d7ec; background: #fff; }
+  .search input:focus { border-color: var(--line-2); background: var(--card); }
   .search svg { position: absolute; left: 11px; top: 11px; opacity: .4; }
 
   nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; }
   nav button {
     display: flex; align-items: center; gap: 10px; width: 100%;
     background: none; border: 0; border-radius: var(--r-sm);
-    padding: 8px 10px; font: inherit; font-size: 14px; color: #3f434b;
+    padding: 8px 10px; font: inherit; font-size: 14px; color: var(--ink-2);
     cursor: pointer; text-align: left;
   }
-  nav button:hover { background: #f1f6fa; color: var(--ink); }
-  nav button.on { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  nav button:hover { background: var(--soft); color: var(--ink); }
+  nav button.on { background: var(--accent-soft); color: var(--accent-ink); font-weight: 500; }
   nav svg { flex: none; }
 
   .hist { flex: 1; overflow-y: auto; margin-top: 10px; padding-right: 2px; }
@@ -89,11 +137,11 @@
   .hist button {
     display: block; width: 100%; background: none; border: 0;
     border-radius: var(--r-sm); padding: 7px 10px; font: inherit; font-size: 13.5px;
-    color: #5c626c; cursor: pointer; text-align: left;
+    color: var(--ink-2); cursor: pointer; text-align: left;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .hist button:hover { background: #f1f6fa; color: var(--ink); }
-  .hist button.on { background: #e9f0f6; color: var(--ink); }
+  .hist button:hover { background: var(--soft); color: var(--ink); }
+  .hist button.on { background: var(--soft-2); color: var(--ink); }
   .hist .empty { padding: 10px; font-size: 13px; color: var(--faint); }
 
   /* add-on-LINE call to action: the web chat is for trying the bot out, LINE is
@@ -139,16 +187,16 @@
   .model {
     display: flex; align-items: center; gap: 8px;
     border: 1px solid var(--line); border-radius: 999px;
-    padding: 7px 14px 7px 8px; font-size: 13.5px; background: #fff;
+    padding: 7px 14px 7px 8px; font-size: 13.5px; background: var(--card);
   }
   .model img { width: 22px; height: 22px; border-radius: 50%; }
   .topright { display: flex; align-items: center; gap: 9px; }
   .newchat {
     display: flex; align-items: center; gap: 7px;
-    background: #101a24; color: #fff; border: 0; border-radius: 999px;
+    background: var(--btn); color: #fff; border: 0; border-radius: 999px;
     padding: 9px 16px; font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
   }
-  .newchat:hover { background: #1c2a38; }
+  .newchat:hover { background: var(--btn-hover); }
   .lineTop {
     display: flex; align-items: center; gap: 7px; text-decoration: none;
     background: var(--line-green); color: #fff; border-radius: 999px;
@@ -178,14 +226,14 @@
   .msg.me { justify-content: flex-end; }
   .bubble {
     max-width: 86%; padding: 13px 17px; border-radius: 18px;
-    background: #f6f7f9; border: 1px solid var(--line); white-space: pre-wrap;
+    background: var(--soft); border: 1px solid var(--line); white-space: pre-wrap;
   }
   .msg.me .bubble {
     background: var(--accent); border-color: var(--accent); color: #fff;
     border-bottom-right-radius: 6px;
   }
-  .msg.bot .bubble { border-bottom-left-radius: 6px; background: #fff; }
-  .bubble.warn { background: var(--warn-bg); border-color: #f3e2b8; }
+  .msg.bot .bubble { border-bottom-left-radius: 6px; background: var(--card); }
+  .bubble.warn { background: var(--warn-bg); border-color: var(--warn-line); }
   .typing span {
     display: inline-block; width: 6px; height: 6px; margin-right: 4px; border-radius: 50%;
     background: var(--faint); animation: blink 1.2s infinite;
@@ -200,23 +248,23 @@
   summary::before { content: '▸ '; color: var(--faint); }
   details[open] summary::before { content: '▾ '; }
   .src {
-    margin: 9px 0 0; padding: 10px 12px; background: #fafbfc;
+    margin: 9px 0 0; padding: 10px 12px; background: var(--soft);
     border-radius: var(--r-sm); border: 1px solid var(--line);
   }
-  .src .cite { color: var(--accent); font-size: 12.5px; font-weight: 600; }
+  .src .cite { color: var(--accent-ink); font-size: 12.5px; font-weight: 600; }
   .src .meta { color: var(--faint); font-size: 11.5px; margin-left: 6px; }
-  .src p { margin: 5px 0 0; font-size: 13px; color: #565c66; max-height: 8.5em; overflow: hidden; }
+  .src p { margin: 5px 0 0; font-size: 13px; color: var(--ink-2); max-height: 8.5em; overflow: hidden; }
 
   /* composer */
   .composer { padding: 8px 22px 22px; position: relative; z-index: 2; }
   .box {
-    max-width: 860px; margin: 0 auto; background: rgba(255,255,255,.82);
+    max-width: 860px; margin: 0 auto; background: var(--glass);
     backdrop-filter: blur(12px);
-    border: 1px solid #dbe6ef; border-radius: var(--r-lg);
+    border: 1px solid var(--line-2); border-radius: var(--r-lg);
     box-shadow: 0 10px 30px rgba(20,22,26,.06);
     padding: 14px 14px 11px;
   }
-  .box:focus-within { border-color: #b9d7ec; }
+  .box:focus-within { border-color: var(--line-2); }
   .box textarea {
     width: 100%; border: 0; outline: none; resize: none; background: none;
     font: inherit; font-size: 15px; color: var(--ink); min-height: 58px; max-height: 190px;
@@ -225,11 +273,11 @@
   .tools { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
   .tools .pill {
     display: inline-flex; align-items: center; gap: 6px;
-    background: #fff; border: 1px solid var(--line); border-radius: 999px;
-    padding: 7px 13px; font: inherit; font-size: 12.5px; color: #4b515b; cursor: pointer;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 13px; font: inherit; font-size: 12.5px; color: var(--ink-2); cursor: pointer;
   }
-  .tools .pill:hover { border-color: #b9d7ec; color: var(--ink); }
-  .tools .pill.on { background: var(--accent-soft); border-color: #b9d7ec; color: var(--accent); }
+  .tools .pill:hover { border-color: var(--line-2); color: var(--ink); }
+  .tools .pill.on { background: var(--accent-soft); border-color: var(--line-2); color: var(--accent-ink); }
   .tools .grow { flex: 1; }
   .send {
     width: 38px; height: 38px; border-radius: 12px; border: 0; cursor: pointer;
@@ -245,18 +293,18 @@
   .panel h3 { margin: 22px 0 9px; font-size: 13px; font-weight: 600; color: var(--faint); }
   .qgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
   .qgrid button {
-    text-align: left; background: #fff; border: 1px solid var(--line);
+    text-align: left; background: var(--card); border: 1px solid var(--line);
     border-radius: var(--r-md); padding: 12px 14px; font: inherit; font-size: 14px;
-    color: #3f434b; cursor: pointer; line-height: 1.55;
+    color: var(--ink-2); cursor: pointer; line-height: 1.55;
   }
-  .qgrid button:hover { border-color: #b9d7ec; color: var(--ink); background: #fbfdff; }
+  .qgrid button:hover { border-color: var(--line-2); color: var(--ink); background: var(--soft); }
   .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 6px; }
   .nums div {
-    background: #fff; border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px;
   }
   .nums b { display: block; font-size: 25px; font-weight: 700; letter-spacing: -.5px; }
   .nums span { font-size: 12.5px; color: var(--muted); }
-  .acts { border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: #fff; }
+  .acts { border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: var(--card); }
   .acts div {
     display: flex; justify-content: space-between; gap: 14px;
     padding: 9px 14px; font-size: 13.5px; border-top: 1px solid var(--line);
@@ -264,25 +312,70 @@
   .acts div:first-child { border-top: 0; }
   .acts span { color: var(--faint); font-size: 12.5px; white-space: nowrap; }
   .gap {
-    background: var(--warn-bg); border: 1px solid #f3e2b8; border-radius: var(--r-md);
-    padding: 13px 15px; font-size: 13.5px; color: #7a5310; line-height: 1.7;
+    background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: var(--r-md);
+    padding: 13px 15px; font-size: 13.5px; color: var(--warn-ink); line-height: 1.7;
   }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 26px 24px 0; }
   .chips button {
-    background: rgba(255,255,255,.75); border: 1px solid var(--line); border-radius: 999px;
-    padding: 8px 14px; font: inherit; font-size: 13px; color: #4b515b; cursor: pointer;
+    background: var(--glass); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 14px; font: inherit; font-size: 13px; color: var(--ink-2); cursor: pointer;
   }
-  .chips button:hover { border-color: #b9d7ec; color: var(--ink); }
+  .chips button:hover { border-color: var(--line-2); color: var(--ink); }
 
   /* figures from the book, shown under the answer that cites their page */
   .figs { display: grid; gap: 10px; margin-top: 12px;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; }
-  .figs figure { margin: 0; background: #fff; border: 1px solid var(--line);
+  .figs figure { margin: 0; background: var(--card); border: 1px solid var(--line);
     border-radius: var(--r-sm); overflow: hidden; }
   .figs img { display: block; width: 100%; height: auto; }
   .figs figcaption { padding: 7px 11px; font-size: 12.5px; color: var(--muted);
-    border-top: 1px solid var(--line); background: #fafcfe; }
+    border-top: 1px solid var(--line); background: var(--soft); }
+
+  /* an end-of-chapter test: the page as the book prints it, and over it, when
+     asked for, the answers to the questions on that page */
+  .ex { white-space: normal; margin-top: 12px; }
+  .exbar { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; flex-wrap: wrap; }
+  .exbar button, .exbar select {
+    font: inherit; font-size: 13px; color: var(--ink-2); background: var(--card);
+    border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer;
+  }
+  .exbar select { min-width: 0; flex: 1 1 150px; max-width: 100%; }
+  .exbar button:hover:not(:disabled), .exbar select:hover { border-color: var(--line-2); color: var(--ink); }
+  .exbar button:disabled { opacity: .4; cursor: default; }
+  .exbar .reveal { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .exbar .reveal:hover:not(:disabled) { color: #fff; filter: brightness(1.12); }
+  .exbar .reveal.on, .exbar .reveal.on:hover:not(:disabled) {
+    background: var(--card); color: var(--accent-ink); filter: none; }
+  .exstage { position: relative; border: 1px solid var(--line); border-radius: var(--r-sm);
+    overflow: hidden; background: var(--card); min-height: 300px; }
+  .exstage img { display: block; width: 100%; height: auto; }
+  .exkey { position: absolute; inset: 0; overflow-y: auto; background: var(--glass-strong);
+    padding: 16px 18px; font-size: 14px; line-height: 1.7; }
+  .exkey[hidden] { display: none; }
+  .exkey .item { padding: 10px 0; border-top: 1px solid var(--line); }
+  .exkey .item:first-child { border-top: 0; padding-top: 0; }
+  .exkey .no { font-size: 12.5px; font-weight: 600; color: var(--accent-ink); }
+  .exkey .ans { display: inline-block; margin-left: 8px; padding: 0 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+  .exkey .title { font-weight: 600; }
+  .exkey .text { white-space: pre-wrap; color: var(--ink-2); }
+  .exkey pre { margin: 8px 0; padding: 10px 12px; background: var(--soft); border-radius: var(--r-sm);
+    overflow-x: auto; font-size: 12.5px; line-height: 1.45; }
+  .exkey .star { margin-top: 5px; padding: 7px 10px; border-radius: var(--r-sm);
+    background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink); font-size: 13px; }
+  .exnote { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .excard { white-space: normal; }
+  .excard p { margin: 0 0 10px; }
+  .excard .acts2 { display: flex; flex-wrap: wrap; gap: 8px; }
+  .excard button {
+    font: inherit; font-size: 13.5px; border-radius: 999px; padding: 8px 15px; cursor: pointer;
+    background: var(--card); border: 1px solid var(--line); color: var(--ink-2); text-align: left;
+  }
+  .excard button:hover { border-color: var(--line-2); color: var(--ink); }
+  .excard button.go { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .excard button.go:hover { color: #fff; filter: brightness(1.12); }
+  .excard small { display: block; margin-top: 9px; color: var(--faint); font-size: 12px; }
 
   /* the menu button and the dimmed backdrop exist only on a narrow screen */
   .narrow { display: none; }
@@ -313,7 +406,7 @@
     .menu {
       display: grid; place-items: center; flex: none;
       width: 40px; height: 40px; border-radius: 12px;
-      border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer;
+      border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
     }
     .top { padding: calc(10px + env(safe-area-inset-top)) 12px 8px; gap: 8px; }
     .topleft { min-width: 0; }
@@ -359,6 +452,173 @@
     .newchat, .lineTop { padding: 11px; }
     .model span { max-width: 34vw; }
   }
+
+  /* ---------------------------------------------------------- settings
+     One button in the sidebar opens a sheet with two tabs: what the reader
+     can change, and what the system is and who made it. */
+  .setbtn {
+    display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px;
+    background: none; border: 1px solid var(--line); border-radius: var(--r-md);
+    padding: 10px 12px; font: inherit; font-size: 13.5px; color: var(--ink-2); cursor: pointer;
+  }
+  .setbtn:hover { border-color: var(--line-2); color: var(--ink); background: var(--soft); }
+  .modal {
+    position: fixed; inset: 0; z-index: 50; display: grid; place-items: center;
+    background: rgba(8,14,20,.5); padding: 16px;
+  }
+  .modal[hidden] { display: none; }
+  .sheet {
+    width: min(560px, 100%); max-height: min(720px, 100%); display: flex; flex-direction: column;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    border-radius: var(--r-lg); box-shadow: 0 30px 80px rgba(8,14,20,.35); overflow: hidden;
+  }
+  .sheethead { display: flex; align-items: center; gap: 10px; padding: 16px 18px 10px; }
+  .sheethead h2 { margin: 0; font-size: 18px; font-weight: 700; flex: 1; }
+  .x {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink-2); cursor: pointer; font-size: 16px; flex: none;
+  }
+  .x:hover { border-color: var(--line-2); color: var(--ink); }
+  .tabs { display: flex; gap: 4px; padding: 0 18px; border-bottom: 1px solid var(--line); }
+  .tabs button {
+    background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+    padding: 9px 12px; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] { color: var(--accent-ink); border-color: var(--accent-ink); font-weight: 500; }
+  .pane { padding: 6px 18px 18px; overflow-y: auto; }
+  .pane[hidden] { display: none; }
+  .pane h3 { margin: 16px 0 6px; font-size: 12.5px; font-weight: 600; color: var(--faint); }
+  .opt {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 11px 0; border-top: 1px solid var(--line); cursor: pointer;
+  }
+  .pane h3 + .opt { border-top: 0; }
+  .opt b { display: block; font-size: 14.5px; font-weight: 500; }
+  .opt small { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+  .opt.off { opacity: .45; cursor: default; }
+  .sw {
+    appearance: none; -webkit-appearance: none; flex: none; margin: 0; cursor: pointer;
+    width: 44px; height: 26px; border-radius: 999px; background: var(--soft-2);
+    border: 1px solid var(--line); position: relative; transition: background .15s;
+  }
+  .sw::after {
+    content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .15s;
+  }
+  .sw:checked { background: var(--accent); border-color: var(--accent); }
+  .sw:checked::after { transform: translateX(18px); }
+  .sw:disabled { cursor: default; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; flex: none; }
+  .seg button {
+    background: none; border: 0; border-radius: 999px; padding: 6px 14px;
+    font: inherit; font-size: 13px; color: var(--muted); cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .danger {
+    font: inherit; font-size: 13.5px; border-radius: 999px; padding: 8px 15px; cursor: pointer;
+    background: var(--card); border: 1px solid var(--line); color: var(--danger); flex: none;
+  }
+  .danger:hover, .danger.armed { border-color: var(--danger); }
+  .danger.armed { background: var(--danger); color: var(--card); }
+  .credits { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 13.5px; }
+  .credits dt { color: var(--muted); white-space: nowrap; }
+  .credits dd { margin: 0; }
+  .pane .status { border-top: 0; margin-top: 0; padding: 0; font-size: 13.5px; }
+  .pane .nums { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .pane .nums div { padding: 11px 8px; }
+  .pane .nums b { font-size: 20px; }
+  .modechip {
+    display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+    background: var(--accent-soft); border: 1px solid var(--line-2); color: var(--accent-ink);
+    padding: 6px 12px; font: inherit; font-size: 12.5px; cursor: pointer;
+  }
+  .modechip[hidden] { display: none; }
+
+  /* ---------------------------------------------------------- the book
+     A spread of two pages on a wide screen, one page on a phone. The leaf is
+     the page being turned: it lies over the half it leaves and rotates about
+     the spine onto the other. */
+  .bookv {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    border-radius: var(--r-lg); overflow: hidden; box-shadow: 0 30px 80px rgba(8,14,20,.4);
+  }
+  .bookbar, .bookfoot { display: flex; align-items: center; gap: 8px; padding: 10px 12px; flex: none; }
+  .bookbar { border-bottom: 1px solid var(--line); }
+  .bookfoot { border-top: 1px solid var(--line); }
+  .bookbar select, .bookbar .tool {
+    font: inherit; font-size: 13px; color: var(--ink-2); background: var(--card);
+    border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; cursor: pointer;
+  }
+  .bookbar select { flex: 1 1 120px; min-width: 0; max-width: 420px; }
+  .bookbar .tool.on { background: var(--accent-soft); border-color: var(--line-2); color: var(--accent-ink); }
+  .bookbar .grow { flex: 1; }
+  .bookfoot input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .bookfoot span { font-size: 12.5px; color: var(--muted); white-space: nowrap; min-width: 108px; text-align: right; }
+  .bookstage {
+    flex: 1; min-height: 0; position: relative; display: flex; align-items: center;
+    justify-content: center; gap: 10px; background: var(--page); overflow: hidden; touch-action: pan-y;
+  }
+  .bookstage.zoom { overflow: auto; display: block; padding: 8px; touch-action: auto; }
+  .bookstage.zoom .spread { margin: 0 auto; }
+  .bnav {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; z-index: 3;
+  }
+  .bnav:disabled { opacity: .3; cursor: default; }
+  .bookstage.zoom .bnav { display: none; }
+  .spread { position: relative; display: flex; perspective: 2400px; flex: none; }
+  .spread .pg, .spread .face { background: #fff; overflow: hidden; }
+  .spread .pg { flex: 1; position: relative; box-shadow: 0 6px 24px rgba(8,14,20,.22); }
+  .spread:not(.single) .pg.left { box-shadow: inset -14px 0 18px -14px rgba(0,0,0,.35), 0 6px 24px rgba(8,14,20,.22); }
+  .spread.single .pg.left { display: none; }
+  .spread img { display: block; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; user-select: none; }
+  .spread .void { background: transparent; box-shadow: none; }
+  .spread .void img, .spread .gap img { display: none; }
+  .spread .gap::after {
+    content: attr(data-note); position: absolute; inset: 0; display: grid; place-items: center;
+    padding: 20px; text-align: center; color: #8a96a3; font-size: 13px;
+  }
+  .leaf {
+    position: absolute; top: 0; width: 50%; height: 100%; z-index: 2;
+    transform-style: preserve-3d; transition: transform .55s ease-in-out, opacity .45s ease-in;
+  }
+  .leaf[hidden] { display: none; }
+  .leaf.notrans { transition: none; }
+  .leaf.next { left: 50%; transform-origin: left center; }
+  .leaf.prev { left: 0; transform-origin: right center; }
+  .leaf.next.go { transform: rotateY(-180deg); }
+  .leaf.prev.go { transform: rotateY(180deg); }
+  .spread.single .leaf { left: 0; width: 100%; transform-origin: left center; }
+  .spread.single .leaf.go { transform: rotateY(-105deg); opacity: 0; }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    box-shadow: 0 6px 24px rgba(8,14,20,.3); }
+  .face.back { transform: rotateY(180deg); }
+  .openbook {
+    display: inline-flex; align-items: center; gap: 8px; margin: 0 0 4px;
+    background: var(--accent); color: #fff; border: 0; border-radius: 999px;
+    padding: 10px 18px; font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .openbook:hover { filter: brightness(1.12); }
+  .rights { font-size: 12px; line-height: 1.6; color: var(--muted); margin: 6px 0 14px; }
+  .bookv .rights {
+    margin: 0; padding: 5px 12px; text-align: center; font-size: 11px; flex: none;
+    border-bottom: 1px solid var(--line); background: var(--soft);
+  }
+  .acts div.link { cursor: pointer; }
+  .acts div.link:hover { background: var(--soft); }
+  @media (max-width: 860px) {
+    .modal.full { padding: 0; }
+    .modal.full .bookv { border: 0; border-radius: 0; }
+    .bookbar { padding: calc(8px + env(safe-area-inset-top)) 10px 8px; }
+    .bookfoot { padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); }
+    .bookstage:not(.zoom) .bnav { position: absolute; top: 50%; margin-top: -22px; opacity: .85; }
+    .bookstage .bnav.prev { left: 6px; }
+    .bookstage .bnav.next { right: 6px; }
+    .pane .nums { grid-template-columns: repeat(2, 1fr); }
+    .sheet { max-height: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { .leaf { transition: none; } }
 </style>
 </head>
 <body>
@@ -390,6 +650,11 @@
           <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/></svg>
         เนื้อหาในหนังสือ
       </button>
+      <button id="navTests">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l2 2 4-4"/><rect x="4" y="4" width="16" height="16" rx="3"/></svg>
+        แบบทดสอบท้ายบท
+      </button>
     </nav>
 
     <div class="hist" id="hist"></div>
@@ -401,9 +666,11 @@
       <span>เพิ่มเพื่อนใน LINE<small>ถามจากมือถือได้ตลอด</small></span>
     </a>
 
-    <div class="status" id="status">
-      <div><span class="dot"></span>กำลังตรวจสอบระบบ…</div>
-    </div>
+    <button class="setbtn" id="openSettings" type="button">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      ตั้งค่า
+    </button>
   </aside>
 
   <div class="scrim" id="scrim"></div>
@@ -447,15 +714,9 @@
       <form class="box" id="form">
         <textarea id="q" rows="1" placeholder="พิมพ์คำถามได้เลย เช่น สายคู่บิดเกลียวคืออะไร"></textarea>
         <div class="tools">
-          <button type="button" class="pill" id="tSearch" title="ข้ามการเรียบเรียงคำตอบ แสดงเฉพาะเนื้อหาในหนังสือที่ค้นเจอ">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
-            <span class="wide">ค้นเนื้อหาอย่างเดียว</span><span class="narrow">ค้นอย่างเดียว</span>
-          </button>
-          <button type="button" class="pill" id="tSources" title="เปิดกล่องเนื้อหาอ้างอิงไว้เสมอ">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/></svg>
-            <span class="wide">กางเนื้อหาอ้างอิงอัตโนมัติ</span><span class="narrow">กางอ้างอิง</span>
+          <button type="button" class="modechip" id="modeChip" hidden
+                  title="กำลังแสดงเฉพาะเนื้อหาที่ค้นเจอ ไม่เรียบเรียงคำตอบ กดเพื่อเปลี่ยนในตั้งค่า">
+            โหมดค้นเนื้อหาอย่างเดียว
           </button>
           <span class="grow"></span>
           <button type="submit" class="send" id="send" title="ส่ง (Enter)">
@@ -469,8 +730,129 @@
   </section>
 </div>
 
+<div class="modal" id="setModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="sheethead">
+      <h2 id="setTitle">ตั้งค่า</h2>
+      <button class="x" type="button" data-close aria-label="ปิด">✕</button>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" data-tab="paneGeneral" aria-selected="true">ทั่วไป</button>
+      <button type="button" role="tab" data-tab="paneAbout" aria-selected="false">เกี่ยวกับระบบ</button>
+    </div>
+
+    <div class="pane" id="paneGeneral" role="tabpanel">
+      <h3>การแสดงผล</h3>
+      <div class="opt" style="cursor:default">
+        <span><b>ธีม</b><small>สีของหน้าจอ</small></span>
+        <span class="seg" id="themeSeg">
+          <button type="button" data-theme="light" aria-pressed="true">สว่าง</button>
+          <button type="button" data-theme="dark" aria-pressed="false">มืด</button>
+        </span>
+      </div>
+
+      <h3>คำตอบ</h3>
+      <label class="opt">
+        <span><b>ชวนทำแบบทดสอบท้ายบท</b><small>ขึ้นการ์ดต่อท้ายคำตอบ ถามว่าอยากทำแบบทดสอบของบทนั้นไหม</small></span>
+        <input type="checkbox" class="sw" data-set="offer">
+      </label>
+      <label class="opt">
+        <span><b>แสดงเนื้อหาจากหนังสือที่ใช้ตอบ</b><small>ต่อท้ายคำตอบด้วยกล่องชิ้นเนื้อหาที่ค้นเจอ พร้อมคะแนนความคล้าย</small></span>
+        <input type="checkbox" class="sw" data-set="sources">
+      </label>
+      <label class="opt" id="optOpenSources">
+        <span><b>กางเนื้อหาอ้างอิงอัตโนมัติ</b><small>เปิดกล่องเนื้อหาอ้างอิงไว้เลย ไม่ต้องกดกาง</small></span>
+        <input type="checkbox" class="sw" data-set="openSources">
+      </label>
+      <label class="opt">
+        <span><b>ค้นเนื้อหาอย่างเดียว</b><small>ข้ามการเรียบเรียงคำตอบ แสดงเฉพาะเนื้อหาในหนังสือที่ค้นเจอ</small></span>
+        <input type="checkbox" class="sw" data-set="searchOnly">
+      </label>
+
+      <h3>ข้อมูลในเครื่องนี้</h3>
+      <div class="opt" style="cursor:default">
+        <span><b>ลบประวัติแชท</b><small id="chatCount">ประวัติเก็บไว้ในเบราว์เซอร์นี้เท่านั้น</small></span>
+        <button type="button" class="danger" id="wipeChats">ลบประวัติแชท</button>
+      </div>
+      <div class="opt" style="cursor:default">
+        <span><b>ลบข้อมูลทั้งหมด</b><small>ประวัติแชทและการตั้งค่าในหน้านี้ กลับเป็นค่าเริ่มต้น</small></span>
+        <button type="button" class="danger" id="wipeAll">ลบทั้งหมด</button>
+      </div>
+    </div>
+
+    <div class="pane" id="paneAbout" role="tabpanel" hidden>
+      <h3>ผู้จัดทำ</h3>
+      <dl class="credits" id="credits"></dl>
+      <h3>ลิขสิทธิ์ของหนังสือ</h3>
+      <div class="rights" data-rights></div>
+      <h3>สถานะระบบ</h3>
+      <div class="status" id="status"><div><span class="dot"></span>กำลังตรวจสอบระบบ…</div></div>
+      <h3>สถิติของคลังข้อมูล</h3>
+      <div class="nums" id="aboutNums"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal full" id="bookModal" hidden>
+  <div class="bookv" role="dialog" aria-modal="true" aria-label="หนังสือคู่มือเรียนเครือข่ายคอมพิวเตอร์เบื้องต้น">
+    <div class="bookbar">
+      <select id="bookSection" aria-label="ไปที่บท"></select>
+      <span class="grow"></span>
+      <button class="tool" type="button" id="bookZoom" aria-pressed="false">ขยาย</button>
+      <button class="x" type="button" data-close aria-label="ปิดหนังสือ">✕</button>
+    </div>
+    <div class="rights" data-rights></div>
+    <div class="bookstage" id="bookStage">
+      <button class="bnav prev" type="button" id="bookPrev" aria-label="หน้าก่อน">‹</button>
+      <div class="spread" id="spread">
+        <div class="pg left"><img alt=""></div>
+        <div class="pg right"><img alt=""></div>
+        <div class="leaf" id="leaf" hidden>
+          <div class="face front"><img alt=""></div>
+          <div class="face back"><img alt=""></div>
+        </div>
+      </div>
+      <button class="bnav next" type="button" id="bookNext" aria-label="หน้าถัดไป">›</button>
+    </div>
+    <div class="bookfoot">
+      <input type="range" id="bookRange" min="1" value="1" aria-label="เลื่อนไปหน้า">
+      <span id="bookWhere"></span>
+    </div>
+  </div>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
+
+/* ---------------------------------------------------------------- settings
+   Kept in this browser, like the chats. The defaults are the page as a first
+   visitor should meet it: light, the test offered after an answer, and the
+   answer without the box of passages under it. */
+const SETTINGS_KEY = 'network-bot-settings';
+const DEFAULTS = { theme: 'light', offer: true, sources: false, openSources: false, searchOnly: false };
+let settings = { ...DEFAULTS };
+function loadSettings() {
+  try { settings = { ...DEFAULTS, ...(JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}) }; }
+  catch { settings = { ...DEFAULTS }; }
+}
+function applySettings() {
+  document.documentElement.dataset.theme = settings.theme === 'dark' ? 'dark' : 'light';
+  document.querySelectorAll('#themeSeg button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.theme === settings.theme)));
+  document.querySelectorAll('.sw[data-set]').forEach(box => { box.checked = !!settings[box.dataset.set]; });
+  // opening the box by itself means nothing while the box is not shown
+  const open = document.querySelector('.sw[data-set="openSources"]');
+  open.disabled = !settings.sources;
+  $('optOpenSources').classList.toggle('off', !settings.sources);
+  $('modeChip').hidden = !settings.searchOnly;
+}
+function setSetting(name, value) {
+  settings[name] = value;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applySettings();
+}
+loadSettings();
+
 const scroll = $('scroll'), log = $('log'), hero = $('hero');
 const form = $('form'), input = $('q'), send = $('send');
 
@@ -552,13 +934,14 @@ function newChat() {
   input.focus();
   renderHistory();
 }
-function remember(role, text, sources, figures, topic) {
+function remember(role, text, sources, figures, topic, exercise, searched) {
   if (!current) {
     current = { id: Date.now(), title: text.slice(0, 60), ts: Date.now(), messages: [] };
     chats.unshift(current);
   }
   current.messages.push({ role, text, sources: sources || null, figures: figures || null,
-                          topic: topic || null });
+                          topic: topic || null, exercise: exercise || null,
+                          searched: !!searched });
   current.ts = Date.now();
   save();
   renderHistory();
@@ -572,7 +955,8 @@ function openChat(chat) {
   chat.messages.forEach(m => {
     const b = bubble(m.text, m.role === 'user' ? 'me' : (m.warn ? 'warn' : 'bot'));
     if (m.figures) addFigures(b, m.figures);
-    if (m.sources) addSources(b, m.sources);
+    if (m.sources) addSources(b, m.sources, m.searched);
+    addExercise(b, m.exercise);
   });
   renderHistory();
 }
@@ -671,11 +1055,12 @@ async function showScope() {
     const s = await (await fetch('/stats')).json();
     if (token !== panelToken) return;   // the user moved on while we waited
     const rows = s.largest.map(c =>
-      `<div><span style="color:#3f434b">บทที่ ${c.chapter} ${esc(c.title)}</span>` +
+      `<div data-chapter="${c.chapter}"><span style="color:var(--ink-2)">บทที่ ${c.chapter} ${esc(c.title)}</span>` +
       `<span>${c.sections.toLocaleString()} หัวข้อ</span></div>`).join('');
     panel.innerHTML =
       '<h2>เนื้อหาในหนังสือ</h2>' +
       '<p class="lede">ตัวเลขทั้งหมดอ่านจากคลังจริงที่เซิร์ฟเวอร์โหลดอยู่ตอนนี้ ไม่ได้เขียนไว้ล่วงหน้า</p>' +
+      '<div id="bookEntry"></div>' +
       '<div class="nums">' +
       `<div><b>${s.chapters.toLocaleString()}</b><span>บท</span></div>` +
       `<div><b>${s.sections.toLocaleString()}</b><span>หัวข้อ</span></div>` +
@@ -686,8 +1071,25 @@ async function showScope() {
       '<h3>สิ่งที่ตอบไม่ได้</h3>' +
       '<div class="gap">ผมตอบได้เฉพาะ<b>เรื่องที่หนังสือเล่มนี้เขียนไว้</b><br>' +
       'เรื่องเครือข่ายที่หนังสือไม่ได้อธิบาย เช่น IPv6 VLAN หรือการตั้งค่าอุปกรณ์เฉพาะยี่ห้อ ' +
-      'และแบบทดสอบท้ายบทซึ่งหนังสือไม่ได้พิมพ์เฉลยไว้ ผมจะบอกตรง ๆ ว่าไม่มีข้อมูล ' +
-      'แทนที่จะตอบจากความจำ</div>';
+      'ผมจะบอกตรง ๆ ว่าไม่มีข้อมูล แทนที่จะตอบจากความจำ<br>' +
+      'แบบทดสอบท้ายบท หนังสือไม่ได้พิมพ์เฉลยไว้ เฉลยที่ผมแสดงจัดทำจากเนื้อหาในหนังสือ ' +
+      'ไม่ใช่เฉลยของสำนักพิมพ์ ข้อที่มี ★ ควรตรวจกับครูผู้สอน</div>';
+    // the book itself, when its pages are on this server: one button to open
+    // it, and each chapter in the list opens it at that chapter
+    const info = await bookReady;
+    if (info && token === panelToken) {
+      const open = el('button', 'openbook', '📖 เปิดอ่านหนังสือ');
+      open.type = 'button';
+      open.onclick = () => openBook(1);
+      $('bookEntry').append(open, el('div', 'rights', BOOK_RIGHTS));
+      panel.querySelectorAll('[data-chapter]').forEach(row => {
+        const section = info.sections.find(x => x.chapter === Number(row.dataset.chapter));
+        if (!section) return;
+        row.classList.add('link');
+        row.title = 'เปิดหนังสือที่บทนี้';
+        row.onclick = () => openBook(section.page);
+      });
+    }
   } catch (err) {
     if (token !== panelToken) return;
     panel.innerHTML = '<h2>เนื้อหาในหนังสือ</h2>' +
@@ -699,6 +1101,7 @@ $('newChat').onclick = newChat;
 $('navNew').onclick = newChat;
 $('navExamples').onclick = showExamples;
 $('navScope').onclick = showScope;
+$('navTests').onclick = () => ask('ขอดูแบบทดสอบท้ายบททุกบท');
 
 /* ---------------------------------------------------------------- chat */
 function bubble(text, cls) {
@@ -722,10 +1125,13 @@ function typing() {
   b.innerHTML = '<span class="typing"><span></span><span></span><span></span></span>';
   return b;
 }
-function addSources(el, sources) {
+function addSources(el, sources, force) {
   if (!sources || !sources.length) return;
+  // a search-only reply is nothing but its passages, so it shows them whatever
+  // the setting; an answer shows them when the reader has asked for them
+  if (!force && !settings.sources) return;
   const d = document.createElement('details');
-  if ($('tSources').classList.contains('on')) d.open = true;
+  if (force || settings.openSources) d.open = true;
   const s = document.createElement('summary');
   s.textContent = `เนื้อหาจากหนังสือที่ใช้ตอบ ${sources.length} ชิ้น`;
   d.appendChild(s);
@@ -769,9 +1175,177 @@ function addFigures(el, figures) {
   el.appendChild(box);
 }
 
-// the two pills are modes, not decorations
-$('tSearch').onclick = () => $('tSearch').classList.toggle('on');
-$('tSources').onclick = () => $('tSources').classList.toggle('on');
+/* ------------------------------------------------------- end-of-chapter tests
+   The server decides which chapter an answer leads to and sends it as
+   `exercise`; nothing here guesses. Three shapes arrive:
+     {chapter, ..., open: false}  an ordinary answer: offer that chapter's test
+     {chapter, ..., open: true}   the test was asked for: show it
+     {menu: [...]}                no chapter is known yet: let the asker pick */
+const KINDS = { choice: 'ปรนัย', truefalse: 'ถูก/ผิด', essay: 'อัตนัย' };
+const exerciseSets = {};
+function exerciseSet(chapter) {
+  if (!exerciseSets[chapter]) {
+    exerciseSets[chapter] = fetch('/exercises/' + chapter).then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+    // a failed read is not kept, so the next open tries again
+    exerciseSets[chapter].catch(() => { delete exerciseSets[chapter]; });
+  }
+  return exerciseSets[chapter];
+}
+function ask(text) {
+  if (send.disabled) return;
+  input.value = text;
+  submit();
+}
+function el(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+function addExercise(target, ex) {
+  if (!ex) return;
+  if (ex.menu) addExerciseMenu(target, ex.menu);
+  else if (ex.open) addExerciseViewer(target, ex);
+  else addExerciseOffer(ex);
+}
+
+// The card after an ordinary answer. Its own message, so that the answer above
+// it reads as finished; typing another question instead of pressing is fine,
+// and the answer to that one brings its own card.
+function addExerciseOffer(ex) {
+  if (!settings.offer) return;
+  const card = bubble('', 'bot');
+  card.classList.add('excard');
+  card.append(
+    el('p', '', `อยากลองทำแบบทดสอบท้ายบทที่ ${ex.chapter} ${ex.title} ไหมครับ ` +
+                `มี ${ex.questions} ข้อ พร้อมเฉลยให้เปิดดูทีละหน้า`));
+  const row = el('div', 'acts2');
+  const go = el('button', 'go', `ทำแบบทดสอบบทที่ ${ex.chapter}`);
+  go.type = 'button';
+  go.onclick = () => ask(`ทำแบบทดสอบท้ายบทที่ ${ex.chapter}`);
+  const other = el('button', '', 'เลือกบทอื่น');
+  other.type = 'button';
+  other.onclick = () => ask('ขอเลือกแบบทดสอบบทอื่น');
+  row.append(go, other);
+  card.append(row, el('small', '', 'หรือพิมพ์ถามเรื่องอื่นต่อได้เลยครับ'));
+}
+
+function addExerciseMenu(target, menu) {
+  const box = el('div', 'ex excard');
+  const row = el('div', 'acts2');
+  menu.forEach(c => {
+    const b = el('button', '', `บทที่ ${c.chapter} ${c.title}` +
+                               (c.questions ? ` · ${c.questions} ข้อ` : ' · ภาคปฏิบัติ'));
+    b.type = 'button';
+    b.onclick = () => ask(`ทำแบบทดสอบท้ายบทที่ ${c.chapter}`);
+    row.appendChild(b);
+  });
+  box.appendChild(row);
+  target.appendChild(box);
+}
+
+function pageLabel(p) {
+  const parts = {};
+  p.items.forEach(i => (parts[i.part] = parts[i.part] || []).push(i.number));
+  const spans = Object.keys(parts).map(k => {
+    const n = parts[k];
+    return `ตอนที่ ${k} ข้อ ${n[0]}` + (n.length > 1 ? `–${n[n.length - 1]}` : '');
+  });
+  return `หน้า ${p.page} · ` + (spans.length ? spans.join(', ') : 'งานภาคปฏิบัติ');
+}
+function keyOf(p) {
+  const frag = document.createDocumentFragment();
+  if (!p.items.length) {
+    frag.append(el('div', 'text', 'หน้านี้เป็นกิจกรรมภาคปฏิบัติ ไม่มีเฉลยเป็นข้อเขียนครับ'));
+    return frag;
+  }
+  p.items.forEach(i => {
+    const item = el('div', 'item');
+    const head = el('div');
+    head.append(el('span', 'no',
+      `ตอนที่ ${i.part} (${KINDS[i.kind]}) ข้อ ${i.number}` + (i.unsure ? ' ★' : '')));
+    if (i.kind === 'essay') {
+      item.append(head, el('div', 'title', i.title));
+      i.blocks.forEach(b => item.append(el(b.type === 'pre' ? 'pre' : 'div',
+                                           b.type === 'pre' ? '' : 'text', b.text)));
+      if (i.unsure) item.append(el('div', 'star',
+        '★ หนังสือไม่ได้ตอบข้อนี้ตรงตัว คำตอบสรุปจากเนื้อหาในเล่ม ควรตรวจกับครูผู้สอน'));
+    } else {
+      head.append(el('span', 'ans', `ตอบ ${i.answer}`));
+      item.append(head, el('div', 'text', i.reason));
+      if (i.unsure) item.append(el('div', 'star',
+        '★ ' + (i.note || 'หนังสือไม่ได้ระบุคำตอบข้อนี้ตรงตัว') + ' ควรตรวจกับครูผู้สอน'));
+    }
+    frag.append(item);
+  });
+  return frag;
+}
+
+// One page at a time: the picture first, as the book prints it with its blanks,
+// and the answers laid over it only when the reveal button is pressed. Turning
+// the page closes them again.
+function addExerciseViewer(target, ex) {
+  const box = el('div', 'ex');
+  box.append(el('div', 'exnote', 'กำลังเปิดแบบทดสอบ…'));
+  target.appendChild(box);
+  exerciseSet(ex.chapter).then(set => {
+    box.innerHTML = '';
+    const bar = el('div', 'exbar');
+    const prev = el('button', '', '‹ ก่อนหน้า');
+    const next = el('button', '', 'ถัดไป ›');
+    const pick = el('select');
+    pick.setAttribute('aria-label', 'เลือกหน้าแบบทดสอบ');
+    const reveal = el('button', 'reveal');
+    [prev, next, reveal].forEach(b => { b.type = 'button'; });
+    set.pages.forEach((p, n) => {
+      const o = el('option', '', pageLabel(p));
+      o.value = n;
+      pick.appendChild(o);
+    });
+    bar.append(prev, pick, next, reveal);
+    const stage = el('div', 'exstage');
+    const img = el('img');
+    const key = el('div', 'exkey');
+    stage.append(img, key);
+    box.append(bar, stage);
+
+    let at = Math.max(0, set.pages.findIndex(p => p.page === ex.page));
+    function show(open) {
+      key.hidden = !open;
+      reveal.textContent = open ? 'ซ่อนเฉลย' : 'เปิดเฉลย';
+      reveal.classList.toggle('on', open);
+      reveal.setAttribute('aria-pressed', String(open));
+    }
+    function turn(n) {
+      at = n;
+      const p = set.pages[at];
+      img.src = p.url;
+      img.width = p.width;
+      img.height = p.height;
+      img.alt = `แบบทดสอบท้ายบทที่ ${set.chapter} หน้า ${p.page}`;
+      key.innerHTML = '';
+      key.appendChild(keyOf(p));
+      key.scrollTop = 0;
+      pick.value = at;
+      prev.disabled = at === 0;
+      next.disabled = at === set.pages.length - 1;
+      show(false);
+    }
+    prev.onclick = () => turn(at - 1);
+    next.onclick = () => turn(at + 1);
+    pick.onchange = () => turn(Number(pick.value));
+    reveal.onclick = () => show(key.hidden);
+    turn(at);
+  }).catch(err => {
+    box.innerHTML = '';
+    box.append(el('div', 'exnote', 'เปิดแบบทดสอบไม่ได้: ' + err.message));
+  });
+}
+
 
 input.addEventListener('input', () => {
   input.style.height = 'auto';
@@ -785,7 +1359,7 @@ form.onsubmit = e => { e.preventDefault(); submit(); };
 async function submit() {
   const q = input.value.trim();
   if (!q || send.disabled) return;
-  const retrievalOnly = $('tSearch').classList.contains('on');
+  const retrievalOnly = settings.searchOnly;
 
   // the question before this one, so a follow-up has something to go on from
   // the server names it (`topic`): after a follow-up it is still the question
@@ -796,6 +1370,10 @@ async function submit() {
   const previous = (last && last.topic)
     || (earlier.length ? earlier[earlier.length - 1].text : null);
   const previous_answer = last ? last.text.slice(0, 6000) : null;
+  // the chapter the chat was last on, so "ทำแบบฝึกหัด" needs no chapter number
+  const onChapter = said.filter(m => m.exercise && m.exercise.chapter).pop();
+  const chapter = onChapter ? onChapter.exercise.chapter : null;
+  let opened = null;
 
   bubble(q, 'me');
   remember('user', q);
@@ -812,20 +1390,23 @@ async function submit() {
         ? `พบเนื้อหาที่เกี่ยวข้อง ${d.hits.length} ชิ้น (ความคล้ายสูงสุด ${d.max_dense})`
         : 'ไม่พบเนื้อหาที่เกี่ยวข้อง';
       if (!d.in_scope) pending.classList.add('warn');
-      addSources(pending, d.hits);
-      remember('bot', pending.textContent, d.hits);
+      const found = pending.textContent;
+      addSources(pending, d.hits, true);
+      remember('bot', found, d.hits, null, null, null, true);
     } else {
       const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: q, previous, previous_answer }),
+        body: JSON.stringify({ question: q, previous, previous_answer, chapter }),
       });
       const d = await res.json();
       pending.textContent = d.answer;
       if (!d.in_scope) pending.classList.add('warn');
       addFigures(pending, d.figures);
       addSources(pending, d.sources);
-      remember('bot', d.answer, d.sources, d.figures, d.topic);
+      remember('bot', d.answer, d.sources, d.figures, d.topic, d.exercise);
+      addExercise(pending, d.exercise);
+      if (d.exercise && d.exercise.open) opened = pending;
     }
   } catch (err) {
     pending.textContent = 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้: ' + err.message;
@@ -834,6 +1415,9 @@ async function submit() {
     send.disabled = false;
     input.focus();
     scroll.scrollTop = scroll.scrollHeight;
+    // a test is a page tall: start at its top, not at its last line. Set on
+    // the chat's own scroller; scrollIntoView moves the window under it too.
+    if (opened) scroll.scrollTop = opened.parentNode.offsetTop - 10;
   }
 }
 
@@ -865,18 +1449,295 @@ input.focus();
 const asked = new URLSearchParams(location.search).get('q');
 if (asked) { input.value = asked; submit(); }
 
-fetch('/health').then(r => r.json()).then(h => {
-  const row = (ok, label) =>
-    `<div><span class="dot ${ok ? 'on' : ''}"></span>${label}</div>`;
-  $('status').innerHTML =
-    row(true, `${h.chunks.toLocaleString()} ชิ้นเนื้อหาในคลัง`) +
-    row(h.dense_index, 'ค้นเชิงความหมาย') +
-    row(h.llm_configured, 'Typhoon เชื่อมต่อแล้ว') +
-    row(h.line_configured, 'LINE เชื่อมต่อแล้ว') +
-    row(h.figures > 0, `รูปประกอบ ${h.figures} รูป`);
-}).catch(() => {
-  $('status').innerHTML = '<div><span class="dot"></span>เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>';
+/* ---------------------------------------------------------------- settings sheet */
+// Names are written here and nowhere else. The book and the models are what
+// the server actually runs; see /health and app/config.py.
+const CREDITS = [
+  ['ระบบ', 'ผู้ช่วยวิชาเครือข่ายคอมพิวเตอร์เบื้องต้น'],
+  ['ผู้พัฒนา', 'ณัฐกิตติ์ จินากูล'],
+  ['สถาบัน', 'มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)'],
+  ['หนังสือที่ใช้ตอบ', 'คู่มือเรียนเครือข่ายคอมพิวเตอร์เบื้องต้น รหัสวิชา 2204-2003 ' +
+                       'โดยฝ่ายตำราวิชาการคอมพิวเตอร์ บริษัท ซีเอ็ดยูเคชั่น จำกัด (มหาชน)'],
+  ['โมเดลภาษา', 'Typhoon'],
+  ['การค้นเนื้อหา', 'BGE-M3 ร่วมกับ BM25'],
+];
+// Whose book this is and on what footing it is shown. Said wherever the
+// book's pages are: in the reader, beside the button that opens it, and here.
+const BOOK_RIGHTS = 'หนังสือเล่มนี้เป็นลิขสิทธิ์ของบริษัท ซีเอ็ดยูเคชั่น จำกัด (มหาชน) ' +
+  'ทีมผู้จัดทำซื้อหนังสือมาอย่างถูกต้อง และนำมาใช้ในระบบนี้เพื่อการศึกษาเท่านั้น ไม่ได้ใช้เพื่อการค้า ' +
+  'ห้ามคัดลอก ดัดแปลง หรือเผยแพร่ต่อ';
+document.querySelectorAll('[data-rights]').forEach(n => { n.textContent = BOOK_RIGHTS; });
+CREDITS.forEach(([what, who]) => $('credits').append(el('dt', '', what), el('dd', '', who)));
+
+function showModal(modal, open) {
+  modal.hidden = !open;
+  if (open) modal.querySelector('[data-close]').focus();
+}
+document.querySelectorAll('.modal').forEach(modal => {
+  // a press on the dimmed surround closes, a press inside does not
+  modal.addEventListener('mousedown', e => { if (e.target === modal) showModal(modal, false); });
+  modal.querySelectorAll('[data-close]').forEach(b => { b.onclick = () => showModal(modal, false); });
 });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  document.querySelectorAll('.modal:not([hidden])').forEach(m => showModal(m, false));
+});
+
+function showTab(id) {
+  document.querySelectorAll('#setModal [data-tab]').forEach(t =>
+    t.setAttribute('aria-selected', String(t.dataset.tab === id)));
+  document.querySelectorAll('#setModal .pane').forEach(p => { p.hidden = p.id !== id; });
+  if (id === 'paneAbout') showAbout();
+}
+document.querySelectorAll('#setModal [data-tab]').forEach(t => { t.onclick = () => showTab(t.dataset.tab); });
+
+function openSettings() {
+  menu(false);
+  disarm();
+  $('chatCount').textContent = chats.length
+    ? `มี ${chats.length.toLocaleString()} แชท เก็บไว้ในเบราว์เซอร์นี้เท่านั้น`
+    : 'ยังไม่มีประวัติแชทในเบราว์เซอร์นี้';
+  showTab('paneGeneral');
+  showModal($('setModal'), true);
+}
+$('openSettings').onclick = openSettings;
+$('modeChip').onclick = openSettings;
+
+document.querySelectorAll('#themeSeg button').forEach(b => {
+  b.onclick = () => setSetting('theme', b.dataset.theme);
+});
+document.querySelectorAll('.sw[data-set]').forEach(box => {
+  box.onchange = () => {
+    setSetting(box.dataset.set, box.checked);
+    // the chat on screen is redrawn, so the change is seen at once and not
+    // only from the next answer on
+    if (current && box.dataset.set !== 'searchOnly') openChat(current);
+  };
+});
+
+// Deleting cannot be undone, so the button asks once more in its own place:
+// the first press arms it, the second within a few seconds does it.
+let armedButton = null, armedTimer = 0;
+function disarm() {
+  clearTimeout(armedTimer);
+  if (armedButton) {
+    armedButton.classList.remove('armed');
+    armedButton.textContent = armedButton.dataset.label;
+    armedButton = null;
+  }
+}
+function twice(button, act) {
+  button.dataset.label = button.textContent;
+  button.onclick = () => {
+    if (armedButton === button) { disarm(); act(); return; }
+    disarm();
+    armedButton = button;
+    button.classList.add('armed');
+    button.textContent = 'กดอีกครั้งเพื่อยืนยัน';
+    armedTimer = setTimeout(disarm, 5000);
+  };
+}
+function wipeChats() {
+  chats = [];
+  localStorage.removeItem(KEY);
+  newChat();
+  $('chatCount').textContent = 'ลบประวัติแชทแล้ว';
+}
+twice($('wipeChats'), wipeChats);
+twice($('wipeAll'), () => {
+  wipeChats();
+  localStorage.removeItem(SETTINGS_KEY);
+  settings = { ...DEFAULTS };
+  applySettings();
+  $('chatCount').textContent = 'ลบข้อมูลทั้งหมดแล้ว';
+});
+
+// What the server is running and what its corpus holds, read when the tab is
+// opened and not written here.
+const healthReady = fetch('/health').then(r => r.json());
+let aboutShown = false;
+function showAbout() {
+  if (aboutShown) return;
+  aboutShown = true;
+  const row = (ok, label) => `<div><span class="dot ${ok ? 'on' : ''}"></span>${esc(label)}</div>`;
+  healthReady.then(h => {
+    $('status').innerHTML =
+      row(true, `${h.chunks.toLocaleString()} ชิ้นเนื้อหาในคลัง`) +
+      row(h.dense_index, 'ค้นเชิงความหมาย') +
+      row(h.llm_configured, h.llm_configured ? 'Typhoon เชื่อมต่อแล้ว' : 'Typhoon ยังไม่ได้เชื่อมต่อ') +
+      row(h.line_configured, h.line_configured ? 'LINE เชื่อมต่อแล้ว' : 'LINE ยังไม่ได้เชื่อมต่อ') +
+      row(h.figures > 0, `รูปประกอบ ${h.figures} รูป`);
+    return fetch('/stats').then(r => r.json()).then(st => {
+      const num = (n, label) => `<div><b>${Number(n).toLocaleString()}</b><span>${label}</span></div>`;
+      $('aboutNums').innerHTML = num(st.chapters, 'บท') + num(st.sections, 'หัวข้อ') +
+        num(st.figures, 'รูปประกอบ') + num(h.exercises || 0, 'ข้อแบบทดสอบ');
+    });
+  }).catch(() => {
+    aboutShown = false;   // so that opening the tab again tries again
+    $('status').innerHTML = '<div><span class="dot"></span>เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</div>';
+  });
+}
+
+/* ---------------------------------------------------------------- the book
+   Pages are pictures named by the number printed on them. Two of those
+   numbers have no picture -- the scan lacks them -- and pages.json says which,
+   so their side of a spread is left as blank paper rather than shifting every
+   page after them onto the wrong side. */
+const bookReady = fetch('/static/book/pages.json')
+  .then(r => (r.ok ? r.json() : null)).catch(() => null);
+let bookInfo = null;
+const bk = { at: 1, single: false, zoom: false, busy: false };
+const spread = $('spread'), leaf = $('leaf'), stage = $('bookStage');
+const pgLeft = spread.querySelector('.pg.left'), pgRight = spread.querySelector('.pg.right');
+const faceFront = leaf.querySelector('.front'), faceBack = leaf.querySelector('.back');
+const bookUrl = p => `/static/book/page-${String(p).padStart(3, '0')}.jpg`;
+const inBook = p => p >= 1 && p <= bookInfo.pages;
+const scanned = p => inBook(p) && !bookInfo.missing.includes(p);
+
+function putPage(holder, p) {
+  const img = holder.querySelector('img');
+  holder.classList.toggle('void', !inBook(p));
+  holder.classList.toggle('gap', inBook(p) && !scanned(p));
+  holder.dataset.note = `หน้า ${p} ไม่มีในไฟล์สแกน`;
+  if (scanned(p)) { img.src = bookUrl(p); img.alt = `หน้า ${p}`; }
+  else img.removeAttribute('src');
+}
+const leftOf = p => p - (p % 2);          // a spread is an even page and the odd one after it
+function drawBook() {
+  if (bk.single) putPage(pgRight, bk.at);
+  else { putPage(pgLeft, leftOf(bk.at)); putPage(pgRight, leftOf(bk.at) + 1); }
+  const shown = bk.single ? [bk.at] : [leftOf(bk.at), leftOf(bk.at) + 1].filter(inBook);
+  $('bookWhere').textContent = `หน้า ${shown.join('–')} / ${bookInfo.pages}`;
+  $('bookRange').value = bk.at;
+  $('bookPrev').disabled = target(-1) === null;
+  $('bookNext').disabled = target(1) === null;
+  const section = bookInfo.sections.filter(x => x.page <= shown[shown.length - 1]).pop();
+  $('bookSection').value = section ? section.page : bookInfo.sections[0].page;
+  // the pages a turn either way will need, fetched before they are asked for
+  [-2, -1, 2, 3].map(d => shown[0] + d).filter(scanned).forEach(p => { new Image().src = bookUrl(p); });
+}
+// where a turn in direction `dir` lands, or null at either cover
+function target(dir) {
+  if (bk.single) {
+    let p = bk.at + dir;
+    while (inBook(p) && !scanned(p)) p += dir;
+    return inBook(p) ? p : null;
+  }
+  const left = leftOf(bk.at) + 2 * dir;
+  return left >= 0 && left <= bookInfo.pages ? Math.max(left, 1) : null;
+}
+function layoutBook() {
+  if (!bookInfo) return;
+  const single = stage.clientWidth < 760;
+  if (single !== bk.single) {
+    bk.single = single;
+    if (single && !scanned(bk.at)) bk.at = target(1) || target(-1) || 1;
+  }
+  const cols = single ? 1 : 2;
+  const room = stage.clientWidth - (single ? 12 : 130), tall = stage.clientHeight - 16;
+  const ratio = bookInfo.width / bookInfo.height;
+  let h = tall, w = h * ratio;
+  if (w * cols > room) { w = room / cols; h = w / ratio; }
+  if (bk.zoom) { w *= 1.9; h *= 1.9; }
+  spread.style.width = Math.floor(w * cols) + 'px';
+  spread.style.height = Math.floor(h) + 'px';
+  spread.classList.toggle('single', single);
+  stage.classList.toggle('zoom', bk.zoom);
+  drawBook();
+}
+function gotoPage(p) {
+  if (bk.busy) return;
+  p = Math.min(Math.max(Number(p) || 1, 1), bookInfo.pages);
+  if (bk.single) while (!scanned(p)) p++;
+  bk.at = p;
+  drawBook();
+}
+const stillLife = matchMedia('(prefers-reduced-motion: reduce)');
+function turnPage(dir) {
+  const to = bookInfo && !bk.busy ? target(dir) : null;
+  if (to === null) return;
+  if (stillLife.matches) { bk.at = to; drawBook(); return; }
+  bk.busy = true;
+  const done = () => {
+    leaf.hidden = true;
+    leaf.className = 'leaf';
+    bk.at = to;
+    bk.busy = false;
+    drawBook();
+  };
+  leaf.className = 'leaf notrans ' + (dir > 0 ? 'next' : 'prev');
+  if (bk.single) {
+    // one page: the old one swings away to the left, or the new one swings in
+    putPage(faceFront, dir > 0 ? bk.at : to);
+    putPage(faceBack, 0);
+    if (dir > 0) putPage(pgRight, to); else leaf.classList.add('go');
+  } else {
+    // two pages: the leaf carries the page it leaves on its front and the
+    // page it lands as on its back; the page it uncovers is already beneath
+    const left = leftOf(bk.at), newLeft = leftOf(to);
+    putPage(faceFront, dir > 0 ? left + 1 : left);
+    putPage(faceBack, dir > 0 ? newLeft : newLeft + 1);
+    putPage(dir > 0 ? pgRight : pgLeft, dir > 0 ? newLeft + 1 : newLeft);
+  }
+  leaf.hidden = false;
+  void leaf.offsetWidth;                   // the start position is taken before the turn begins
+  leaf.classList.remove('notrans');
+  leaf.classList.toggle('go', !(bk.single && dir < 0));
+  let finished = false;
+  const finish = () => { if (!finished) { finished = true; done(); } };
+  leaf.addEventListener('transitionend', e => { if (e.propertyName === 'transform') finish(); }, { once: true });
+  setTimeout(finish, 800);                 // a tab in the background fires no transitionend
+}
+async function openBook(page) {
+  const info = await bookReady;
+  if (!info) return;
+  if (!bookInfo) {
+    bookInfo = info;
+    $('bookRange').max = info.pages;
+    info.sections.forEach(x => {
+      const o = el('option', '', x.title);
+      o.value = x.page;
+      $('bookSection').appendChild(o);
+    });
+  }
+  showModal($('bookModal'), true);
+  bk.at = 1;
+  layoutBook();
+  gotoPage(page || 1);
+}
+$('bookPrev').onclick = () => turnPage(-1);
+$('bookNext').onclick = () => turnPage(1);
+$('bookSection').onchange = e => gotoPage(e.target.value);
+$('bookRange').oninput = e => gotoPage(e.target.value);
+$('bookZoom').onclick = () => {
+  bk.zoom = !bk.zoom;
+  $('bookZoom').classList.toggle('on', bk.zoom);
+  $('bookZoom').setAttribute('aria-pressed', String(bk.zoom));
+  $('bookZoom').textContent = bk.zoom ? 'ย่อ' : 'ขยาย';
+  layoutBook();
+};
+// a press on a page turns towards that side; a swipe turns the way a hand would
+spread.addEventListener('click', e => {
+  if (bk.zoom) return;
+  const box = spread.getBoundingClientRect();
+  turnPage(e.clientX < box.left + box.width / 2 ? -1 : 1);
+});
+let swipeFrom = null;
+stage.addEventListener('touchstart', e => { swipeFrom = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+stage.addEventListener('touchend', e => {
+  if (swipeFrom === null || bk.zoom) return;
+  const dx = e.changedTouches[0].clientX - swipeFrom;
+  swipeFrom = null;
+  if (Math.abs(dx) > 45) turnPage(dx < 0 ? 1 : -1);
+}, { passive: true });
+document.addEventListener('keydown', e => {
+  if ($('bookModal').hidden || e.target.matches('select, input')) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') turnPage(1);
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') turnPage(-1);
+});
+addEventListener('resize', () => { if (!$('bookModal').hidden) layoutBook(); });
+
+applySettings();
 </script>
 </body>
 </html>

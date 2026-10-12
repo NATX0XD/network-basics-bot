@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import line_bot, monitor
-from app import articles, book
+from app import articles, book, exercises
 from app.answer import answer_question
 from app.config import BASE_DIR, settings
 from app.retriever import get_retriever
@@ -72,6 +72,7 @@ async def health() -> dict:
             "dense_index": True,
             "figures": len(index.figures),
             "step_photos": sum(len(v) for v in index.photos.values()),
+            "exercises": sum(c["questions"] for c in exercises.listing()),
             "llm_configured": bool(settings.typhoon_api_key),
             "line_configured": bool(settings.line_channel_secret
                                     and settings.line_channel_access_token),
@@ -149,6 +150,9 @@ class ChatRequest(BaseModel):
     # something to go on from; the server keeps no session for the web page
     previous: str | None = Field(default=None, max_length=1000)
     previous_answer: str | None = Field(default=None, max_length=6000)
+    # the chapter the last answer in this chat was written from, so that
+    # "ทำแบบฝึกหัด" with no chapter named means that chapter's test
+    chapter: int | None = Field(default=None, ge=1, le=99)
 
 
 @app.post("/chat")
@@ -156,7 +160,8 @@ async def chat(req: ChatRequest) -> dict:
     # The web page and LINE share one buffer, so /recent shows the whole of what
     # the bot is being asked, not just the half that arrived over LINE.
     entry = monitor.record(source="web", user="", text=req.question)
-    answer = await answer_question(req.question, req.previous, req.previous_answer)
+    answer = await answer_question(req.question, req.previous, req.previous_answer,
+                                   req.chapter)
     monitor.finish(entry, answer=answer.text, in_scope=answer.in_scope,
                    faults=answer.faults, repair=answer.repair, error=answer.error)
     return {
@@ -168,6 +173,9 @@ async def chat(req: ChatRequest) -> dict:
         "figures": answer.figures,
         # what to send back as `previous` with the next message
         "topic": answer.topic,
+        # the end-of-chapter test this answer offers or opens, or the list of
+        # chapters to pick one from; see GET /exercises/{chapter}
+        "exercise": answer.exercise,
         "error": answer.error,
         # what the guards found on the first draft, and whether the rewrite was
         # accepted. For reading acceptance runs without diffing against the
@@ -182,6 +190,25 @@ async def chat(req: ChatRequest) -> dict:
             for h in answer.hits
         ],
     }
+
+
+@app.get("/exercises")
+async def exercise_list() -> dict:
+    """Which chapters have an end-of-chapter test, and how many questions."""
+    if settings.dataset != "network" or exercises.get_index() is None:
+        raise HTTPException(404, "Not Found")
+    return {"chapters": exercises.listing(), "notice": exercises.NOTICE}
+
+
+@app.get("/exercises/{chapter}")
+async def exercise_set(chapter: int) -> dict:
+    """One chapter's test, page by page: the picture of the page as the book
+    prints it, and the answers to the questions on it. The key is not the
+    publisher's; `notice` says so and the page shows it."""
+    found = exercises.chapter_set(chapter) if settings.dataset == "network" else None
+    if found is None:
+        raise HTTPException(404, "Not Found")
+    return found
 
 
 @app.get("/recent")

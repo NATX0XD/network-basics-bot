@@ -24,6 +24,12 @@
   ขึ้นต้นด้วยประโยคบอกที่มาเสมอ ไม่มีอ้างอิงและไม่มีรูป (เจ้าของงานสั่งให้เปิดเมื่อ 6 ต.ค. 2569)
 - ปฏิเสธ (`in_scope: false`) เมื่อคำถามไม่ใช่เรื่องเครือข่าย
 
+- `exercise` ข้อความถามถึงแบบทดสอบท้ายบท ("ทำแบบฝึกหัด", "เฉลยบทที่ 2 ตอนที่ 1 ข้อ 7") ตอบจากเฉลยใน
+  `data/processed/exercises_network.json` โดย `app/exercises.py` ไม่เรียกโมเดลและไม่ค้นหนังสือ
+  หนังสือไม่ได้พิมพ์เฉลยไว้ เฉลยชุดนี้เขียนจากเนื้อหาในเล่ม (`ingest/exercise_key_network.md`)
+  ข้อที่หนังสือไม่ได้ระบุคำตอบตรงตัวติด ★ และทุกคำตอบขึ้นข้อความบอกว่าไม่ใช่เฉลยของสำนักพิมพ์
+  คำตอบแบบ `book` พ่วงช่อง `exercise` ไว้ให้หน้าเว็บขึ้นการ์ดชวนทำแบบทดสอบของบทที่ใช้ตอบ
+
 ของหนังสือกับของโมเดลห้ามอยู่บรรทัดเดียวกัน ป้ายทั้งสองเขียนไว้ใน `app/book.py` ไม่ได้ให้โมเดลเขียน
 
 เทสต์ของชุดเดิมยังรันกับชุดเดิมทุกตัว กำหนดไว้ใน `tests/conftest.py`
@@ -72,6 +78,7 @@ repo นี้เป็น public
 | `data/processed/corpus_articles.jsonl` | รัน `python -m ingest.build_article_index` แล้ว `python -m ingest.calibrate_articles` | ระบบโยน `article index/corpus mismatch` หรือเกณฑ์ส่งทางใน `app/articles.py` ไม่ตรงกับข้อมูล |
 | `data/processed/corpus_network.jsonl` | รัน `python -m ingest.build_book_index` แล้ว `python -m ingest.calibrate_book` | ระบบโยน `book index/corpus mismatch` หรือ `book_min_sim` ใน `app/config.py` ไม่ตรงกับข้อมูล |
 | `data/raw/network/network-basics.md` หรือ `.pdf` | รัน `python -m ingest.extract_book` และ `python -m ingest.extract_figures` ทั้งคู่ | ชิ้นข้อความอ้างรูปที่ไม่มีไฟล์ คำตอบจึงไม่มีรูป |
+| `ingest/exercise_key_network.md` หรือตาราง `PAGES` ใน `ingest/extract_exercises.py` | รัน `python -m ingest.extract_exercises` | เฉลยบนหน้าเว็บไม่ตรงกับไฟล์เฉลย `tests/test_exercises.py` จับไว้ |
 | `SYSTEM_PROMPT` | ตัวเลขจำนวนข้อใน `report/chapter3_content.py` และสไลด์ | เล่มบอกจำนวนกฎผิด |
 
 `tests/test_docker_context.py` จับคู่แรกไว้แล้ว รันเทสต์ก่อน push จะไม่เจอบน Render
@@ -96,6 +103,8 @@ repo นี้เป็น public
 | `data/processed/corpus_network.jsonl` / `corpus_network_SOURCES.md` | `python -m ingest.extract_book` |
 | `data/index/network_*` | `python -m ingest.build_book_index` |
 | `web/figures/*` / `data/processed/figures_network.json` | `python -m ingest.extract_figures` (ต้องใช้ macOS) |
+| `web/exercises/*` / `data/processed/exercises_network.json` | `python -m ingest.extract_exercises` (เฉลยแก้ที่ `ingest/exercise_key_network.md`) |
+| `web/book/*` (รูปทุกหน้าของหนังสือ + `pages.json` ที่ตัวอ่านหนังสือบนเว็บใช้ ตั้งชื่อตามเลขหน้าที่พิมพ์ ไฟล์สแกนขาดหน้า 226 และ 262) | `python -m ingest.extract_book_pages` |
 | `data/eval/แบบทดสอบแชทบอทเครือข่าย.xlsx` | `python -m ingest.export_book_test` (ลง Google Sheet: `ingest.push_book_test`) ช่องคะแนนเว้นว่างให้คนกรอก |
 | `assets/network/*.png` / `web/logo-network.png` | เรนเดอร์จาก `assets/network/logo.html` และ `richmenu.html` |
 
@@ -112,7 +121,7 @@ repo นี้เป็น public
 .venv/bin/python -m pytest -q
 ```
 
-ต้องผ่านครบ ตอนนี้ 569 ตัว เทสต์ตกแม้ตัวเดียวคือยังไม่ commit
+ต้องผ่านครบ ตอนนี้ 593 ตัว เทสต์ตกแม้ตัวเดียวคือยังไม่ commit
 
 push ขึ้น `main` แล้ว Render จะ deploy เองอัตโนมัติ (`autoDeployTrigger: commit`)
 แปลว่า **push ผิด = เซิร์ฟเวอร์จริงพังทันที** ไม่มีขั้นกลาง

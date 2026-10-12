@@ -10,6 +10,7 @@ data/processed/*
 !data/processed/corpus_articles.jsonl
 !data/processed/corpus_network.jsonl
 !data/processed/figures_network.json
+!data/processed/exercises_network.json
 data/index/*
 !data/index/vectors.npy
 !data/index/bm25_compact.npz

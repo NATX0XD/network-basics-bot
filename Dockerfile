@@ -43,6 +43,9 @@ COPY data/index/articles_bm25_vocab.json       data/index/articles_bm25_vocab.js
 # DATASET=ksp is a restart rather than a rebuild.
 COPY data/processed/corpus_network.jsonl       data/processed/corpus_network.jsonl
 COPY data/processed/figures_network.json       data/processed/figures_network.json
+# the end-of-chapter tests and the answers written for them; the pictures of
+# their pages are under web/exercises
+COPY data/processed/exercises_network.json     data/processed/exercises_network.json
 COPY data/index/network_vectors.npy            data/index/network_vectors.npy
 COPY data/index/network_bm25_compact.npz       data/index/network_bm25_compact.npz
 COPY data/index/network_bm25_vocab.json        data/index/network_bm25_vocab.json

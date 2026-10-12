@@ -35,6 +35,7 @@ from typing import Optional
 
 import numpy as np
 
+from app import exercises
 from app.articles import (DEGENERATE_RUN, NO_ANSWER, POINTER,
                           REPEATED_CITE, THAI_DIGITS, WORD, ArticleIndex)
 from app.bm25_lite import BM25Lite
@@ -655,6 +656,14 @@ def pick_figures(question: str, cited: list[BookHit], shown: list[BookHit],
     return out + [entry(info["key"], info) for info in steps]
 
 
+def chapter_of(cited: list[BookHit]) -> int | None:
+    """The chapter an answer was written from: the one most of its references
+    are in, and the one cited first when two tie."""
+    chapters = [h.rec["chapter"] for h in cited]
+    return max(chapters, key=lambda n: (chapters.count(n), -chapters.index(n)),
+               default=None)
+
+
 def nearest(hits: list[BookHit]) -> list[str]:
     return list(dict.fromkeys(h.citation for h in hits))[:3]
 
@@ -778,13 +787,21 @@ GOING_ON = ("\n\nนักเรียนได้คำตอบข้างล
 
 
 async def answer(question: str, previous: str | None = None,
-                 previous_answer: str | None = None):
+                 previous_answer: str | None = None, chapter: int | None = None):
     """An Answer written from the book, or a refusal if no draft holds up.
 
     The answer carries the question the chat is on, for the caller to hand
     back as `previous` next time. A follow-up leaves it where it was, so a
     second "อยากรู้เพิ่มเติมอีก" still goes on from the question that started
-    it rather than from the first "อยากรู้เพิ่มเติมอีก"."""
+    it rather than from the first "อยากรู้เพิ่มเติมอีก".
+
+    A message about the end-of-chapter tests is answered from the key and
+    never reaches the search: see app/exercises.py. It leaves the topic where
+    it was too, since "อธิบายเพิ่ม" after a test still means the lesson."""
+    about_tests = exercises.reply(question, chapter)
+    if about_tests is not None:
+        about_tests.topic = previous
+        return about_tests
     reply = await _answer(question, previous, previous_answer)
     if with_context(question, previous) != question or not reply.in_scope:
         reply.topic = previous
@@ -883,5 +900,6 @@ async def _answer(question: str, previous: str | None, previous_answer: str | No
     return Answer(text=body,
                   citations=list(dict.fromkeys(h.citation for h in cited)),
                   hits=hits, source="book",
+                  exercise=exercises.offer(chapter_of(cited)),
                   figures=pick_figures(question, cited, hits, index.figures,
                                        index.rarity, index.photos))
