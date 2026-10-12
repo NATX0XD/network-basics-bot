@@ -285,6 +285,20 @@
   }
   .send:disabled { opacity: .4; cursor: default; }
   .hint { max-width: 860px; margin: 9px auto 0; font-size: 11.5px; color: var(--faint); text-align: center; }
+  /* While a chat is being read and nothing is being typed, the box is one
+     line, so the answer has the screen. It opens again when it is pressed. */
+  .chatting .box:not(:focus-within):has(textarea:placeholder-shown) {
+    display: flex; align-items: center; gap: 8px; border-radius: 999px;
+    padding: 6px 6px 6px 18px; box-shadow: 0 4px 14px rgba(20,22,26,.05);
+  }
+  .chatting .box:not(:focus-within):has(textarea:placeholder-shown) textarea {
+    min-height: 0; height: 24px !important; line-height: 24px; overflow: hidden;
+    white-space: nowrap; flex: 1; min-width: 0;
+  }
+  .chatting .box:not(:focus-within):has(textarea:placeholder-shown) .tools { margin-top: 0; flex: none; }
+  .chatting .box:not(:focus-within):has(textarea:placeholder-shown) .send { border-radius: 50%; }
+  .chatting .composer:has(.box:not(:focus-within) textarea:placeholder-shown) { padding-top: 4px; padding-bottom: 12px; }
+  .chatting .composer:has(.box:not(:focus-within) textarea:placeholder-shown) .hint { display: none; }
 
   /* panels behind the two informational nav items */
   .panel { max-width: 860px; margin: 0 auto; padding: 26px 22px 6px; }
@@ -335,24 +349,35 @@
   /* an end-of-chapter test: the page as the book prints it, and over it, when
      asked for, the answers to the questions on that page */
   .ex { white-space: normal; margin-top: 12px; }
-  .exbar { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; flex-wrap: wrap; }
-  .exbar button, .exbar select {
+  .exbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .exnav { display: flex; align-items: center; gap: 6px; flex: 1 1 250px; min-width: 0; }
+  .exnav button, .exnav select, .exfoot button {
     font: inherit; font-size: 13px; color: var(--ink-2); background: var(--card);
-    border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; cursor: pointer;
   }
-  .exbar select { min-width: 0; flex: 1 1 150px; max-width: 100%; }
-  .exbar button:hover:not(:disabled), .exbar select:hover { border-color: var(--line-2); color: var(--ink); }
-  .exbar button:disabled { opacity: .4; cursor: default; }
-  .exbar .reveal { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
-  .exbar .reveal:hover:not(:disabled) { color: #fff; filter: brightness(1.12); }
-  .exbar .reveal.on, .exbar .reveal.on:hover:not(:disabled) {
-    background: var(--card); color: var(--accent-ink); filter: none; }
-  .exstage { position: relative; border: 1px solid var(--line); border-radius: var(--r-sm);
-    overflow: hidden; background: var(--card); min-height: 300px; }
-  .exstage img { display: block; width: 100%; height: auto; }
-  .exkey { position: absolute; inset: 0; overflow-y: auto; background: var(--glass-strong);
-    padding: 16px 18px; font-size: 14px; line-height: 1.7; }
+  .exnav button { flex: none; width: 38px; padding-left: 0; padding-right: 0; font-size: 17px; line-height: 1.1; }
+  .exnav select { flex: 1; min-width: 0; text-overflow: ellipsis; }
+  .exnav button:hover:not(:disabled), .exnav select:hover, .exfoot button:hover:not(:disabled) {
+    border-color: var(--line-2); color: var(--ink); }
+  .exnav button:disabled, .exfoot button:disabled { opacity: .4; cursor: default; }
+  /* the question page or its answers: one of the two, never one over the other */
+  .exseg { display: inline-flex; flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .exseg button {
+    font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0;
+    border-radius: 999px; padding: 6px 18px; cursor: pointer;
+  }
+  .exseg button[aria-pressed="true"] { background: var(--accent); color: #fff; font-weight: 500; }
+  .exstage { border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; background: var(--card); }
+  .exstage img { display: block; width: 100%; height: auto; background: #fff; cursor: zoom-in; }
+  .exstage img[hidden] { display: none; }
+  .exkey { padding: 14px 16px; font-size: 14px; line-height: 1.7; }
   .exkey[hidden] { display: none; }
+  .exfoot { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px;
+    padding-top: 12px; border-top: 1px solid var(--line); }
+  .exfoot .go { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .exfoot .go:hover:not(:disabled) { color: #fff; filter: brightness(1.12); }
+  .extip { margin-top: 7px; font-size: 12px; color: var(--faint); text-align: center; }
+  .extip[hidden] { display: none; }
   .exkey .item { padding: 10px 0; border-top: 1px solid var(--line); }
   .exkey .item:first-child { border-top: 0; padding-top: 0; }
   .exkey .no { font-size: 12.5px; font-weight: 600; color: var(--accent-ink); }
@@ -444,6 +469,11 @@
     .tools .narrow { display: inline; }
     .send { width: 42px; height: 42px; }
     .hint { display: none; }
+    .exseg { flex: 1 1 100%; }
+    .exseg button { flex: 1; padding: 9px 0; font-size: 14px; }
+    .exnav button { width: 42px; padding-top: 10px; padding-bottom: 10px; }
+    .exnav select { padding-top: 10px; padding-bottom: 10px; }
+    .exkey { padding: 12px 12px; }
     nav button, .hist button { padding-top: 10px; padding-bottom: 10px; }
   }
   @media (max-width: 480px) {
@@ -522,7 +552,7 @@
   .danger.armed { background: var(--danger); color: var(--card); }
   .credits { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 13.5px; }
   .credits dt { color: var(--muted); white-space: nowrap; }
-  .credits dd { margin: 0; }
+  .credits dd { margin: 0; white-space: pre-line; }
   .pane .status { border-top: 0; margin-top: 0; padding: 0; font-size: 13.5px; }
   .pane .nums { grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .pane .nums div { padding: 11px 8px; }
@@ -923,12 +953,17 @@ function save() {
   // keep the store bounded; 60 conversations is far more than anyone scrolls
   localStorage.setItem(KEY, JSON.stringify(chats.slice(0, 60)));
 }
+// `chatting` on the page is what lets the composer rest as one line
+function showHero(show) {
+  hero.style.display = show ? 'grid' : 'none';
+  document.body.classList.toggle('chatting', !show);
+}
 function newChat() {
   current = null;
   closePanel();
   setNav('navNew');
   log.innerHTML = '';
-  hero.style.display = 'grid';
+  showHero(true);
   input.value = '';
   input.style.height = 'auto';
   input.focus();
@@ -950,7 +985,7 @@ function openChat(chat) {
   current = chat;
   closePanel();
   setNav('navNew');
-  hero.style.display = 'none';
+  showHero(false);
   log.innerHTML = '';
   chat.messages.forEach(m => {
     const b = bubble(m.text, m.role === 'user' ? 'me' : (m.warn ? 'warn' : 'bot'));
@@ -1014,7 +1049,7 @@ function closePanel() {
 }
 function openPanel(id) {
   log.innerHTML = '';
-  hero.style.display = 'none';
+  showHero(false);
   panel.style.display = 'block';
   panel.innerHTML = '';
   setNav(id);
@@ -1109,7 +1144,7 @@ function bubble(text, cls) {
   // panel has to get out of the way wherever the first message comes from
   closePanel();
   setNav('navNew');
-  hero.style.display = 'none';
+  showHero(false);
   const wrap = document.createElement('div');
   wrap.className = 'msg ' + (cls === 'me' ? 'me' : 'bot');
   const b = document.createElement('div');
@@ -1255,11 +1290,13 @@ function pageLabel(p) {
     const n = parts[k];
     return `ตอนที่ ${k} ข้อ ${n[0]}` + (n.length > 1 ? `–${n[n.length - 1]}` : '');
   });
+  if ((p.guides || []).length) spans.push('กิจกรรมฝึกทักษะ');
   return `หน้า ${p.page} · ` + (spans.length ? spans.join(', ') : 'งานภาคปฏิบัติ');
 }
 function keyOf(p) {
   const frag = document.createDocumentFragment();
-  if (!p.items.length) {
+  const guides = p.guides || [];
+  if (!p.items.length && !guides.length) {
     frag.append(el('div', 'text', 'หน้านี้เป็นกิจกรรมภาคปฏิบัติ ไม่มีเฉลยเป็นข้อเขียนครับ'));
     return frag;
   }
@@ -1282,12 +1319,28 @@ function keyOf(p) {
     }
     frag.append(item);
   });
+  // practical work has no answer to reveal; what is shown is a way to go about it
+  if (guides.length) {
+    const lead = el('div', 'item');
+    lead.append(el('div', 'title', 'แนวทางทำกิจกรรมฝึกฝนทักษะ'),
+                el('div', 'star', 'งานภาคปฏิบัติไม่มีคำตอบตายตัว แนวทางนี้สรุปจากขั้นตอนในหนังสือ ' +
+                                  'ส่วนที่เขียนว่า (สมมติ) เป็นตัวอย่างที่แต่งขึ้น ผลงานจริงให้ครูผู้สอนเป็นผู้ประเมิน'));
+    frag.append(lead);
+    guides.forEach(g => {
+      const item = el('div', 'item');
+      item.append(el('div', 'no', `กิจกรรมข้อ ${g.number}`), el('div', 'title', g.title));
+      g.blocks.forEach(b => item.append(el(b.type === 'pre' ? 'pre' : 'div',
+                                           b.type === 'pre' ? '' : 'text', b.text)));
+      frag.append(item);
+    });
+  }
   return frag;
 }
 
 // One page at a time: the picture first, as the book prints it with its blanks,
-// and the answers laid over it only when the reveal button is pressed. Turning
-// the page closes them again.
+// and the answers in its place only when asked for. The answers take the room
+// they need in the chat itself; a box that scrolls inside a page that scrolls
+// is hard to use with a thumb. Turning the page goes back to the picture.
 function addExerciseViewer(target, ex) {
   const box = el('div', 'ex');
   box.append(el('div', 'exnote', 'กำลังเปิดแบบทดสอบ…'));
@@ -1295,30 +1348,49 @@ function addExerciseViewer(target, ex) {
   exerciseSet(ex.chapter).then(set => {
     box.innerHTML = '';
     const bar = el('div', 'exbar');
-    const prev = el('button', '', '‹ ก่อนหน้า');
-    const next = el('button', '', 'ถัดไป ›');
+    const nav = el('div', 'exnav');
+    const prev = el('button', '', '‹');
+    const next = el('button', '', '›');
+    prev.setAttribute('aria-label', 'หน้าก่อน');
+    next.setAttribute('aria-label', 'หน้าถัดไป');
     const pick = el('select');
     pick.setAttribute('aria-label', 'เลือกหน้าแบบทดสอบ');
-    const reveal = el('button', 'reveal');
-    [prev, next, reveal].forEach(b => { b.type = 'button'; });
     set.pages.forEach((p, n) => {
       const o = el('option', '', pageLabel(p));
       o.value = n;
       pick.appendChild(o);
     });
-    bar.append(prev, pick, next, reveal);
+    nav.append(prev, pick, next);
+    const seg = el('div', 'exseg');
+    const asked = el('button', '', 'โจทย์');
+    const keyed = el('button', '', 'เฉลย');
+    seg.append(asked, keyed);
+    bar.append(nav, seg);
     const stage = el('div', 'exstage');
     const img = el('img');
     const key = el('div', 'exkey');
     stage.append(img, key);
-    box.append(bar, stage);
+    const tip = el('div', 'extip');
+    box.append(bar, stage, tip);
+    const foot = el('div', 'exfoot');
+    const back = el('button', '', 'กลับไปดูโจทย์');
+    const onward = el('button', 'go', 'หน้าถัดไป ›');
+    foot.append(back, onward);
+    [prev, next, asked, keyed, back, onward].forEach(b => { b.type = 'button'; });
 
     let at = Math.max(0, set.pages.findIndex(p => p.page === ex.page));
+    // the top of the viewer back into sight, when what was below it has gone
+    function settle() {
+      const above = box.getBoundingClientRect().top - scroll.getBoundingClientRect().top;
+      if (above < 0) scroll.scrollTop += above - 10;
+    }
     function show(open) {
       key.hidden = !open;
-      reveal.textContent = open ? 'ซ่อนเฉลย' : 'เปิดเฉลย';
-      reveal.classList.toggle('on', open);
-      reveal.setAttribute('aria-pressed', String(open));
+      img.hidden = open;
+      tip.hidden = open;
+      asked.setAttribute('aria-pressed', String(!open));
+      keyed.setAttribute('aria-pressed', String(open));
+      settle();
     }
     function turn(n) {
       at = n;
@@ -1328,17 +1400,24 @@ function addExerciseViewer(target, ex) {
       img.height = p.height;
       img.alt = `แบบทดสอบท้ายบทที่ ${set.chapter} หน้า ${p.page}`;
       key.innerHTML = '';
-      key.appendChild(keyOf(p));
-      key.scrollTop = 0;
+      key.append(keyOf(p), foot);
       pick.value = at;
       prev.disabled = at === 0;
-      next.disabled = at === set.pages.length - 1;
+      next.disabled = onward.disabled = at === set.pages.length - 1;
       show(false);
     }
     prev.onclick = () => turn(at - 1);
-    next.onclick = () => turn(at + 1);
+    next.onclick = onward.onclick = () => turn(at + 1);
     pick.onchange = () => turn(Number(pick.value));
-    reveal.onclick = () => show(key.hidden);
+    asked.onclick = back.onclick = () => show(false);
+    keyed.onclick = () => show(true);
+    // a page of the book is small print in a chat bubble: pressing it opens the
+    // same page in the reader, which can enlarge it
+    bookReady.then(info => {
+      if (!info) { img.style.cursor = 'default'; return; }
+      tip.textContent = 'แตะที่รูปเพื่อเปิดหน้านี้แบบเต็มจอ';
+      img.onclick = () => openBook(set.pages[at].page);
+    });
     turn(at);
   }).catch(err => {
     box.innerHTML = '';
@@ -1453,9 +1532,13 @@ if (asked) { input.value = asked; submit(); }
 // Names are written here and nowhere else. The book and the models are what
 // the server actually runs; see /health and app/config.py.
 const CREDITS = [
-  ['ระบบ', 'ผู้ช่วยวิชาเครือข่ายคอมพิวเตอร์เบื้องต้น'],
-  ['ผู้พัฒนา', 'ณัฐกิตติ์ จินากูล'],
-  ['สถาบัน', 'มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB)'],
+  ['โครงงาน', 'การพัฒนาระบบแชทบอทตอบคำถามรายวิชาเครือข่ายคอมพิวเตอร์เบื้องต้น' +
+              'ด้วยเทคนิค Retrieval-Augmented Generation'],
+  ['ผู้จัดทำ', ['นายพงศกร ศรีษเกตุ', 'นายณบวร ลิ้มวัฒนะ', 'นางสาวจิดาภา สุขาภิรมย์',
+               'นายกิตติพัตท์ อินอารีย์', 'นายณัฐกิตติ์ จินากูล'].join('\n')],
+  ['สถาบัน', 'ภาควิชาคอมพิวเตอร์ศึกษา คณะครุศาสตร์อุตสาหกรรม\n' +
+             'มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ'],
+  ['ภาคเรียน', '1/2569'],
   ['หนังสือที่ใช้ตอบ', 'คู่มือเรียนเครือข่ายคอมพิวเตอร์เบื้องต้น รหัสวิชา 2204-2003 ' +
                        'โดยฝ่ายตำราวิชาการคอมพิวเตอร์ บริษัท ซีเอ็ดยูเคชั่น จำกัด (มหาชน)'],
   ['โมเดลภาษา', 'Typhoon'],

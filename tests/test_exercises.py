@@ -181,3 +181,16 @@ def test_the_reader_has_a_picture_for_every_page_it_lists():
         there = os.path.exists(os.path.join(folder, f"page-{page:03d}.jpg"))
         assert there != (page in info["missing"]), page
     assert all(s["page"] not in info["missing"] for s in info["sections"])
+
+
+def test_practical_work_is_given_a_guide_and_never_counted_as_a_question():
+    index = exercises.get_index()
+    guided = {n: len(c["guides"]) for n, c in index["chapters"].items() if c["guides"]}
+    assert guided == {4: 2, 5: 7, 6: 3, 7: 4}
+    assert exercises.summary(6)["questions"] == 0
+    page = exercises.chapter_set(6)["pages"][0]
+    assert page["items"] == [] and [g["number"] for g in page["guides"]] == [1, 2, 3]
+    for chapter in index["chapters"].values():
+        for guide in chapter["guides"]:
+            assert guide["kind"] == "practical" and guide["blocks"]
+            assert guide["page"] in extract_exercises.PRACTICAL[chapter["chapter"]]

@@ -45,7 +45,8 @@ KIND_NAMES = {"choice": "ปรนัย", "truefalse": "ถูก/ผิด", "
 
 NOTICE = ("ℹ️ หนังสือไม่ได้พิมพ์เฉลยไว้ เฉลยชุดนี้จัดทำจากเนื้อหาในหนังสือ ไม่ใช่เฉลยของสำนักพิมพ์ "
           "ข้อที่มี ★ หนังสือไม่ได้ระบุคำตอบตรงตัว ควรตรวจกับครูผู้สอน")
-PRACTICAL_ONLY = "แบบทดสอบของบทนี้เป็นงานภาคปฏิบัติทั้งหมด จึงไม่มีเฉลยเป็นข้อเขียนครับ"
+PRACTICAL_ONLY = ("แบบทดสอบของบทนี้เป็นงานภาคปฏิบัติทั้งหมด ไม่มีคำตอบตายตัว "
+                  "กดดูแนวทางทำกิจกรรมที่สรุปจากขั้นตอนในหนังสือได้ครับ")
 
 _index: Optional[dict] = None
 _loaded = False
@@ -97,7 +98,8 @@ def chapter_set(chapter: int) -> Optional[dict]:
         image = index["images"][page]
         pages.append({"page": page, "url": IMAGES_URL + image["file"],
                       "width": image["width"], "height": image["height"],
-                      "items": [i for i in row["items"] if i["page"] == page]})
+                      "items": [i for i in row["items"] if i["page"] == page],
+                      "guides": [g for g in row.get("guides", []) if g["page"] == page]})
     return {**summary(chapter), "pages": pages, "notice": NOTICE}
 
 

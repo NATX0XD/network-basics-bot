@@ -60,6 +60,9 @@ PAGES: dict[tuple[int, int], list[tuple[int, int, int]]] = {
 # Pages of a test that carry practical work only, or carry it beside the
 # questions: there is a picture of them, and nothing to reveal on the first kind.
 PRACTICAL: dict[int, list[int]] = {4: [173, 174], 5: [225], 6: [261], 7: [292]}
+# chapter -> the page each task of its practical work is set on, in order. The
+# key gives these a way of going about the task, not an answer: there is none.
+GUIDES: dict[int, list[int]] = {4: [173, 174], 5: [225] * 7, 6: [261] * 3, 7: [292] * 4}
 
 CHAPTER = re.compile(r"^## บทที่ (\d+) (.+?)\s*\((?:แบบทดสอบ )?น\. [\d–\-]+\)\s*$")
 PART = re.compile(r"^### ตอนที่ (\d+) (.+?)\s*$")
@@ -139,7 +142,7 @@ def read_key(path: str = KEY_PATH) -> dict[int, dict]:
         if head:
             close_essay()
             chapter = {"chapter": int(head.group(1)), "title": head.group(2),
-                       "parts": [], "items": []}
+                       "parts": [], "items": [], "guides": []}
             chapters[chapter["chapter"]] = chapter
             part = None
             continue
@@ -153,19 +156,21 @@ def read_key(path: str = KEY_PATH) -> dict[int, dict]:
             if part["kind"] != "practical":
                 chapter["parts"].append(part)
             continue
-        if part is None or part["kind"] == "practical" or line.strip() == "---":
+        if part is None or line.strip() == "---":
             close_essay()
             continue
-        if part["kind"] == "essay":
+        if part["kind"] in ("essay", "practical"):
             head = ESSAY.match(line)
             if head:
                 close_essay()
                 title = head.group(2)
-                essay = {"part": part["part"], "kind": "essay",
+                essay = {"part": part["part"], "kind": part["kind"],
                          "number": int(head.group(1)),
                          "title": title.replace("★", "").strip(),
                          "unsure": "★" in title}
-                chapter["items"].append(essay)
+                # a task of the practical work is kept apart from the questions:
+                # it is not counted as one, and what is written for it is no answer
+                chapter["guides" if part["kind"] == "practical" else "items"].append(essay)
                 if head.group(3):
                     body.append(head.group(3))
             elif essay is not None:
@@ -213,6 +218,15 @@ def place(chapters: dict[int, dict]) -> None:
                 item["page"] = where[item["number"]]
             part["count"] = len(items)
             pages |= set(where.values())
+        guided = GUIDES.get(n, [])
+        if [g["number"] for g in chapter["guides"]] != list(range(1, len(guided) + 1)):
+            raise SystemExit(
+                f"บทที่ {n}: เฉลยมีแนวทางกิจกรรมข้อ {[g['number'] for g in chapter['guides']]} "
+                f"แต่ GUIDES มี {len(guided)} ข้อ")
+        for guide, page in zip(chapter["guides"], guided):
+            if page not in PRACTICAL.get(n, []):
+                raise SystemExit(f"บทที่ {n}: หน้า {page} ใน GUIDES ไม่ใช่หน้ากิจกรรมใน PRACTICAL")
+            guide["page"] = page
         chapter["pages"] = sorted(pages)
         if not chapter["pages"]:
             raise SystemExit(f"บทที่ {n} ไม่มีหน้าแบบทดสอบ")
