@@ -498,7 +498,7 @@
   }
   .modal[hidden] { display: none; }
   .sheet {
-    width: min(560px, 100%); max-height: min(720px, 100%); display: flex; flex-direction: column;
+    width: min(780px, 100%); height: min(600px, 100%); display: flex; flex-direction: column;
     background: var(--card); color: var(--ink); border: 1px solid var(--line);
     border-radius: var(--r-lg); box-shadow: 0 30px 80px rgba(8,14,20,.35); overflow: hidden;
   }
@@ -509,13 +509,7 @@
     background: var(--card); color: var(--ink-2); cursor: pointer; font-size: 16px; flex: none;
   }
   .x:hover { border-color: var(--line-2); color: var(--ink); }
-  .tabs { display: flex; gap: 4px; padding: 0 18px; border-bottom: 1px solid var(--line); }
-  .tabs button {
-    background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
-    padding: 9px 12px; font: inherit; font-size: 14px; color: var(--muted); cursor: pointer;
-  }
-  .tabs button[aria-selected="true"] { color: var(--accent-ink); border-color: var(--accent-ink); font-weight: 500; }
-  .pane { padding: 6px 18px 18px; overflow-y: auto; }
+  .pane { padding: 4px 22px 22px; overflow-y: auto; flex: 1; min-width: 0; }
   .pane[hidden] { display: none; }
   .pane h3 { margin: 16px 0 6px; font-size: 12.5px; font-weight: 600; color: var(--faint); }
   .opt {
@@ -557,6 +551,81 @@
   .pane .nums { grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .pane .nums div { padding: 11px 8px; }
   .pane .nums b { font-size: 20px; }
+  /* the sheet's two columns: what there is to set, by kind, and the kind chosen */
+  .setbody { flex: 1; min-height: 0; display: flex; border-top: 1px solid var(--line); }
+  .setnav {
+    flex: none; width: 196px; display: flex; flex-direction: column; gap: 2px;
+    padding: 12px 10px; border-right: 1px solid var(--line); background: var(--soft);
+  }
+  .setnav button {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; white-space: nowrap;
+    background: none; border: 0; border-radius: var(--r-sm); padding: 10px 12px;
+    font: inherit; font-size: 14px; color: var(--ink-2); cursor: pointer;
+  }
+  .setnav button:hover { background: var(--soft-2); }
+  .setnav button[aria-selected="true"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 500; }
+  .setnav svg { flex: none; }
+  .panehead { padding: 16px 0 12px; }
+  .panehead b { display: block; font-size: 16px; font-weight: 700; }
+  .panehead span { font-size: 13px; color: var(--muted); }
+  .panehead + .opt { border-top: 1px solid var(--line); }
+  .guide { display: grid; gap: 12px; margin: 4px 0 0; padding: 0; list-style: none; }
+  .guide li { display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+  .guide li i {
+    flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent-ink); font-style: normal; font-size: 12.5px; font-weight: 600;
+  }
+  .guide li b { color: var(--ink); font-weight: 600; }
+  .tourhero {
+    display: flex; gap: 14px; align-items: center; padding: 14px; margin-bottom: 18px;
+    border: 1px solid var(--line-2); border-radius: var(--r-md); background: var(--accent-soft);
+  }
+  .tourhero img { width: 120px; height: 68px; object-fit: cover; border-radius: var(--r-sm); background: #fff; flex: none; }
+  .tourhero div { flex: 1; min-width: 0; font-size: 13px; color: var(--ink-2); }
+  .tourhero b { display: block; font-size: 14.5px; color: var(--ink); }
+  .primary {
+    font: inherit; font-size: 13.5px; font-weight: 500; border: 0; border-radius: 999px; padding: 9px 18px;
+    background: var(--accent); color: #fff; cursor: pointer; flex: none;
+  }
+  .primary:hover { filter: brightness(1.12); }
+
+  /* ---------------------------------------------------------- the tour
+     One part of the page at a time is left lit and the rest dimmed, with a
+     card beside it that says what the part is for. */
+  .tour { position: fixed; inset: 0; z-index: 80; }
+  .tour[hidden] { display: none; }
+  .tour.centre { background: rgba(8,14,20,.6); }
+  .tourspot {
+    position: fixed; border-radius: 14px; pointer-events: none;
+    box-shadow: 0 0 0 3px var(--accent-2), 0 0 0 9999px rgba(8,14,20,.6);
+    transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease;
+  }
+  .tour.centre .tourspot { display: none; }
+  .tourcard {
+    position: fixed; width: 344px; max-width: calc(100vw - 24px); overflow: hidden;
+    background: var(--card); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 18px; box-shadow: 0 24px 70px rgba(8,14,20,.45);
+    transition: top .28s ease, left .28s ease;
+  }
+  .tourcard figure { margin: 0; aspect-ratio: 16 / 9; background: #fff; border-bottom: 1px solid var(--line); }
+  .tourcard figure[hidden] { display: none; }
+  .tourcard figure img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .tourtext { padding: 14px 16px 4px; }
+  .tourtext small { color: var(--accent-ink); font-size: 12px; font-weight: 600; }
+  .tourtext b { display: block; font-size: 16px; font-weight: 700; margin: 2px 0 4px; }
+  .tourtext p { margin: 0; font-size: 13.5px; line-height: 1.65; color: var(--ink-2); }
+  .tourfoot { display: flex; align-items: center; gap: 8px; padding: 12px 16px 14px; }
+  .tourdots { display: flex; gap: 5px; flex: 1; }
+  .tourdots i { width: 6px; height: 6px; border-radius: 50%; background: var(--soft-2); }
+  .tourdots i.on { background: var(--accent-ink); width: 16px; border-radius: 999px; }
+  .tourfoot button {
+    font: inherit; font-size: 13px; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+    background: none; border: 1px solid var(--line); color: var(--ink-2);
+  }
+  .tourfoot button.skip { border-color: transparent; color: var(--muted); padding-left: 4px; padding-right: 4px; }
+  .tourfoot button.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .tourfoot button[hidden] { display: none; }
+  @media (prefers-reduced-motion: reduce) { .tourspot, .tourcard { transition: none; } }
   .modechip {
     display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
     background: var(--accent-soft); border: 1px solid var(--line-2); color: var(--accent-ink);
@@ -646,7 +715,19 @@
     .bookstage .bnav.prev { left: 6px; }
     .bookstage .bnav.next { right: 6px; }
     .pane .nums { grid-template-columns: repeat(2, 1fr); }
-    .sheet { max-height: 100%; }
+    .modal.wide { padding: 0; }
+    .sheet { height: 100%; border: 0; border-radius: 0; }
+    .sheethead { padding-top: calc(14px + env(safe-area-inset-top)); }
+    .setbody { flex-direction: column; }
+    .setnav {
+      flex-direction: row; width: auto; padding: 0 12px 10px; gap: 6px; overflow-x: auto;
+      border-right: 0; border-bottom: 1px solid var(--line); scrollbar-width: none;
+    }
+    .setnav::-webkit-scrollbar { display: none; }
+    .setnav button { width: auto; flex: none; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; }
+    .setnav button[aria-selected="true"] { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .pane { padding: 2px 16px calc(20px + env(safe-area-inset-bottom)); }
+    .tourcard { width: calc(100vw - 24px); }
   }
   @media (prefers-reduced-motion: reduce) { .leaf { transition: none; } }
 </style>
@@ -760,65 +841,109 @@
   </section>
 </div>
 
-<div class="modal" id="setModal" hidden>
+<div class="modal wide" id="setModal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
     <div class="sheethead">
       <h2 id="setTitle">ตั้งค่า</h2>
       <button class="x" type="button" data-close aria-label="ปิด">✕</button>
     </div>
-    <div class="tabs" role="tablist">
-      <button type="button" role="tab" data-tab="paneGeneral" aria-selected="true">ทั่วไป</button>
-      <button type="button" role="tab" data-tab="paneAbout" aria-selected="false">เกี่ยวกับระบบ</button>
+    <div class="setbody">
+      <div class="setnav" role="tablist">
+        <button type="button" role="tab" data-tab="paneLook" aria-selected="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>การแสดงผล</button>
+        <button type="button" role="tab" data-tab="paneAnswer" aria-selected="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>คำตอบ</button>
+        <button type="button" role="tab" data-tab="paneGuide" aria-selected="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>คู่มือการใช้</button>
+        <button type="button" role="tab" data-tab="paneData" aria-selected="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>ข้อมูลในเครื่อง</button>
+        <button type="button" role="tab" data-tab="paneCredits" aria-selected="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.5a6 6 0 0 1 3 5.5"/></svg>ผู้จัดทำ</button>
+        <button type="button" role="tab" data-tab="paneSystem" aria-selected="false"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>ระบบ</button>
+      </div>
+
+      <div class="pane" id="paneLook" role="tabpanel">
+        <div class="panehead"><b>การแสดงผล</b><span>หน้าตาของหน้าจอบนเครื่องนี้</span></div>
+        <div class="opt" style="cursor:default">
+          <span><b>ธีม</b><small>สว่างเหมาะกับที่แสงมาก มืดสบายตาในที่แสงน้อย</small></span>
+          <span class="seg" id="themeSeg">
+            <button type="button" data-theme="light" aria-pressed="true">สว่าง</button>
+            <button type="button" data-theme="dark" aria-pressed="false">มืด</button>
+          </span>
+        </div>
+      </div>
+
+      <div class="pane" id="paneAnswer" role="tabpanel" hidden>
+        <div class="panehead"><b>คำตอบ</b><span>สิ่งที่แสดงมากับคำตอบของแชทบอท</span></div>
+        <label class="opt">
+          <span><b>ชวนทำแบบทดสอบท้ายบท</b><small>ขึ้นการ์ดต่อท้ายคำตอบ ถามว่าอยากทำแบบทดสอบของบทนั้นไหม</small></span>
+          <input type="checkbox" class="sw" data-set="offer">
+        </label>
+        <label class="opt">
+          <span><b>แสดงเนื้อหาจากหนังสือที่ใช้ตอบ</b><small>ต่อท้ายคำตอบด้วยกล่องชิ้นเนื้อหาที่ค้นเจอ พร้อมคะแนนความคล้าย</small></span>
+          <input type="checkbox" class="sw" data-set="sources">
+        </label>
+        <label class="opt" id="optOpenSources">
+          <span><b>กางเนื้อหาอ้างอิงอัตโนมัติ</b><small>เปิดกล่องเนื้อหาอ้างอิงไว้เลย ไม่ต้องกดกาง</small></span>
+          <input type="checkbox" class="sw" data-set="openSources">
+        </label>
+        <label class="opt">
+          <span><b>ค้นเนื้อหาอย่างเดียว</b><small>ข้ามการเรียบเรียงคำตอบ แสดงเฉพาะเนื้อหาในหนังสือที่ค้นเจอ</small></span>
+          <input type="checkbox" class="sw" data-set="searchOnly">
+        </label>
+      </div>
+
+      <div class="pane" id="paneGuide" role="tabpanel" hidden>
+        <div class="panehead"><b>คู่มือการใช้</b><span>สำหรับผู้ใช้ใหม่ หรืออยากทบทวนว่าทำอะไรได้บ้าง</span></div>
+        <div class="tourhero">
+          <img src="/static/tour/welcome.jpg" alt="" onerror="this.remove()">
+          <div><b>พาทัวร์หน้าจอ</b>ชี้ให้ดูทีละส่วน ใช้เวลาไม่ถึงหนึ่งนาที</div>
+          <button type="button" class="primary" id="startTour">เริ่มทัวร์</button>
+        </div>
+        <ol class="guide">
+          <li><i>1</i><span><b>ถามเป็นภาษาพูด</b> พิมพ์คำถามในช่องด้านล่าง คำตอบบอกบทและหน้าของหนังสือ พร้อมรูปประกอบ</span></li>
+          <li><i>2</i><span><b>ถามต่อได้เลย</b> เช่น "ขอละเอียดกว่านี้" หรือ "ยกตัวอย่างหน่อย" ระบบจำเรื่องที่คุยอยู่</span></li>
+          <li><i>3</i><span><b>ทำแบบทดสอบท้ายบท</b> กดจากการ์ดใต้คำตอบ จากเมนู หรือพิมพ์ "ทำแบบทดสอบบทที่ 2" แล้วสลับดูโจทย์กับเฉลย</span></li>
+          <li><i>4</i><span><b>เปิดอ่านหนังสือ</b> เมนู "เนื้อหาในหนังสือ" เปิดหนังสือทั้งเล่ม พลิกหน้าและขยายได้</span></li>
+          <li><i>5</i><span><b>ถามผ่าน LINE</b> เพิ่มเพื่อนแล้วถามจากมือถือได้เหมือนกัน</span></li>
+        </ol>
+      </div>
+
+      <div class="pane" id="paneData" role="tabpanel" hidden>
+        <div class="panehead"><b>ข้อมูลในเครื่อง</b><span>ประวัติแชทและการตั้งค่าเก็บในเบราว์เซอร์นี้ ไม่ได้ส่งไปเก็บที่เซิร์ฟเวอร์</span></div>
+        <div class="opt" style="cursor:default">
+          <span><b>ลบประวัติแชท</b><small id="chatCount">ประวัติเก็บไว้ในเบราว์เซอร์นี้เท่านั้น</small></span>
+          <button type="button" class="danger" id="wipeChats">ลบประวัติแชท</button>
+        </div>
+        <div class="opt" style="cursor:default">
+          <span><b>ลบข้อมูลทั้งหมด</b><small>ประวัติแชทและการตั้งค่าทุกอย่าง กลับเป็นค่าเริ่มต้น ลบแล้วกู้คืนไม่ได้</small></span>
+          <button type="button" class="danger" id="wipeAll">ลบทั้งหมด</button>
+        </div>
+      </div>
+
+      <div class="pane" id="paneCredits" role="tabpanel" hidden>
+        <div class="panehead"><b>ผู้จัดทำ</b><span>โครงงานและที่มาของเนื้อหา</span></div>
+        <dl class="credits" id="credits"></dl>
+        <h3>ลิขสิทธิ์ของหนังสือ</h3>
+        <div class="rights" data-rights></div>
+      </div>
+
+      <div class="pane" id="paneSystem" role="tabpanel" hidden>
+        <div class="panehead"><b>ระบบ</b><span>สถานะและขนาดของคลังข้อมูล อ่านจากเซิร์ฟเวอร์ตอนนี้</span></div>
+        <h3>สถานะ</h3>
+        <div class="status" id="status"><div><span class="dot"></span>กำลังตรวจสอบระบบ…</div></div>
+        <h3>สถิติของคลังข้อมูล</h3>
+        <div class="nums" id="aboutNums"></div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="pane" id="paneGeneral" role="tabpanel">
-      <h3>การแสดงผล</h3>
-      <div class="opt" style="cursor:default">
-        <span><b>ธีม</b><small>สีของหน้าจอ</small></span>
-        <span class="seg" id="themeSeg">
-          <button type="button" data-theme="light" aria-pressed="true">สว่าง</button>
-          <button type="button" data-theme="dark" aria-pressed="false">มืด</button>
-        </span>
-      </div>
-
-      <h3>คำตอบ</h3>
-      <label class="opt">
-        <span><b>ชวนทำแบบทดสอบท้ายบท</b><small>ขึ้นการ์ดต่อท้ายคำตอบ ถามว่าอยากทำแบบทดสอบของบทนั้นไหม</small></span>
-        <input type="checkbox" class="sw" data-set="offer">
-      </label>
-      <label class="opt">
-        <span><b>แสดงเนื้อหาจากหนังสือที่ใช้ตอบ</b><small>ต่อท้ายคำตอบด้วยกล่องชิ้นเนื้อหาที่ค้นเจอ พร้อมคะแนนความคล้าย</small></span>
-        <input type="checkbox" class="sw" data-set="sources">
-      </label>
-      <label class="opt" id="optOpenSources">
-        <span><b>กางเนื้อหาอ้างอิงอัตโนมัติ</b><small>เปิดกล่องเนื้อหาอ้างอิงไว้เลย ไม่ต้องกดกาง</small></span>
-        <input type="checkbox" class="sw" data-set="openSources">
-      </label>
-      <label class="opt">
-        <span><b>ค้นเนื้อหาอย่างเดียว</b><small>ข้ามการเรียบเรียงคำตอบ แสดงเฉพาะเนื้อหาในหนังสือที่ค้นเจอ</small></span>
-        <input type="checkbox" class="sw" data-set="searchOnly">
-      </label>
-
-      <h3>ข้อมูลในเครื่องนี้</h3>
-      <div class="opt" style="cursor:default">
-        <span><b>ลบประวัติแชท</b><small id="chatCount">ประวัติเก็บไว้ในเบราว์เซอร์นี้เท่านั้น</small></span>
-        <button type="button" class="danger" id="wipeChats">ลบประวัติแชท</button>
-      </div>
-      <div class="opt" style="cursor:default">
-        <span><b>ลบข้อมูลทั้งหมด</b><small>ประวัติแชทและการตั้งค่าในหน้านี้ กลับเป็นค่าเริ่มต้น</small></span>
-        <button type="button" class="danger" id="wipeAll">ลบทั้งหมด</button>
-      </div>
-    </div>
-
-    <div class="pane" id="paneAbout" role="tabpanel" hidden>
-      <h3>ผู้จัดทำ</h3>
-      <dl class="credits" id="credits"></dl>
-      <h3>ลิขสิทธิ์ของหนังสือ</h3>
-      <div class="rights" data-rights></div>
-      <h3>สถานะระบบ</h3>
-      <div class="status" id="status"><div><span class="dot"></span>กำลังตรวจสอบระบบ…</div></div>
-      <h3>สถิติของคลังข้อมูล</h3>
-      <div class="nums" id="aboutNums"></div>
+<div class="tour" id="tour" hidden>
+  <div class="tourspot" id="tourSpot"></div>
+  <div class="tourcard" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <figure id="tourFig"><img id="tourImg" alt=""></figure>
+    <div class="tourtext"><small id="tourCount"></small><b id="tourTitle"></b><p id="tourBody"></p></div>
+    <div class="tourfoot">
+      <div class="tourdots" id="tourDots"></div>
+      <button type="button" class="skip" id="tourSkip">ข้าม</button>
+      <button type="button" id="tourBack">ย้อนกลับ</button>
+      <button type="button" class="next" id="tourNext">ถัดไป</button>
     </div>
   </div>
 </div>
@@ -1570,17 +1695,17 @@ function showTab(id) {
   document.querySelectorAll('#setModal [data-tab]').forEach(t =>
     t.setAttribute('aria-selected', String(t.dataset.tab === id)));
   document.querySelectorAll('#setModal .pane').forEach(p => { p.hidden = p.id !== id; });
-  if (id === 'paneAbout') showAbout();
+  if (id === 'paneSystem') showAbout();
 }
 document.querySelectorAll('#setModal [data-tab]').forEach(t => { t.onclick = () => showTab(t.dataset.tab); });
 
-function openSettings() {
+function openSettings(tab) {
   menu(false);
   disarm();
   $('chatCount').textContent = chats.length
     ? `มี ${chats.length.toLocaleString()} แชท เก็บไว้ในเบราว์เซอร์นี้เท่านั้น`
     : 'ยังไม่มีประวัติแชทในเบราว์เซอร์นี้';
-  showTab('paneGeneral');
+  showTab(typeof tab === 'string' ? tab : 'paneLook');
   showModal($('setModal'), true);
 }
 $('openSettings').onclick = openSettings;
@@ -1630,6 +1755,7 @@ twice($('wipeChats'), wipeChats);
 twice($('wipeAll'), () => {
   wipeChats();
   localStorage.removeItem(SETTINGS_KEY);
+  localStorage.removeItem(TOUR_KEY);
   settings = { ...DEFAULTS };
   applySettings();
   $('chatCount').textContent = 'ลบข้อมูลทั้งหมดแล้ว';
@@ -1820,7 +1946,127 @@ document.addEventListener('keydown', e => {
 });
 addEventListener('resize', () => { if (!$('bookModal').hidden) layoutBook(); });
 
+/* ---------------------------------------------------------------- the tour
+   Shown once to a browser that has not seen it, and again whenever it is
+   asked for in the settings. A step with no target is said in the middle of
+   the screen; a step in the sidebar opens the drawer first on a phone. */
+const TOUR_KEY = 'network-bot-tour';
+const TOUR = [
+  { img: 'welcome', title: 'ยินดีต้อนรับ',
+    text: 'ผู้ช่วยนี้ตอบคำถามวิชาเครือข่ายคอมพิวเตอร์เบื้องต้นจากหนังสือเรียน ขอพาดูรอบหน้าจอสั้นๆ ก่อนเริ่มใช้' },
+  { at: '#form', img: 'ask', title: 'ถามตรงนี้',
+    text: 'พิมพ์คำถามเป็นภาษาพูดได้เลย เช่น "สายแลนคืออะไร" กด Enter เพื่อส่ง คำตอบจะบอกบทและหน้าของหนังสือ พร้อมรูปประกอบ' },
+  { at: '#chips', title: 'ยังนึกคำถามไม่ออก',
+    text: 'กดคำถามตัวอย่างเพื่อลองดูก่อนได้ ถามจบแล้วถามต่อได้เลย เช่น "ขอละเอียดกว่านี้"' },
+  { at: '#navScope', side: true, img: 'book', title: 'เนื้อหาในหนังสือ',
+    text: 'ดูว่าหนังสือมีบทอะไรบ้าง และเปิดอ่านหนังสือทั้งเล่มแบบพลิกหน้าได้ ทั้งบนคอมพิวเตอร์และมือถือ' },
+  { at: '#navTests', side: true, img: 'quiz', title: 'แบบทดสอบท้ายบท',
+    text: 'เลือกบทแล้วลองทำจากรูปโจทย์ก่อน จากนั้นกด "เฉลย" เพื่อดูคำตอบพร้อมเหตุผลและเลขหน้า' },
+  { at: '#hist', also: '#filter', side: true, img: 'history', title: 'ประวัติการถาม',
+    text: 'แชทที่เคยคุยเก็บไว้ในเครื่องนี้ กดเพื่อกลับไปอ่าน หรือพิมพ์ค้นในช่องด้านบน' },
+  { at: '#addLine', side: true, title: 'ถามผ่าน LINE',
+    text: 'เพิ่มเพื่อนแล้วถามจากมือถือได้ตลอด ได้คำตอบจากหนังสือเล่มเดียวกัน' },
+  { at: '#openSettings', side: true, img: 'settings', title: 'ตั้งค่า',
+    text: 'เปลี่ยนธีมสว่างหรือมืด เลือกสิ่งที่แสดงมากับคำตอบ ลบประวัติ และเปิดทัวร์นี้ดูอีกครั้งได้ที่ "คู่มือการใช้"' },
+  { title: 'พร้อมแล้ว', text: 'ลองถามคำถามแรกได้เลยครับ' },
+];
+const tour = $('tour'), tourSpot = $('tourSpot'), tourCard = $('tourCard');
+const narrow = matchMedia('(max-width: 860px)');
+let tourAt = -1;
+
+function placeTour() {
+  if (tourAt < 0) return;
+  const step = TOUR[tourAt];
+  const vw = innerWidth, vh = innerHeight, gap = 14;
+  const w = tourCard.offsetWidth, h = tourCard.offsetHeight;
+  const target = step.at && document.querySelector(step.at);
+  const box = target && target.getBoundingClientRect();
+  // a target with no size is not on the page as it stands (no chats yet, the
+  // LINE link not configured): the step is said in the middle instead
+  const lit = box && box.width > 0 && box.height > 0;
+  tour.classList.toggle('centre', !lit);
+  if (!lit) {
+    tourCard.style.left = Math.round((vw - w) / 2) + 'px';
+    tourCard.style.top = Math.round(Math.max(12, (vh - h) / 2)) + 'px';
+    return;
+  }
+  let top = box.top, left = box.left, right = box.right, bottom = box.bottom;
+  const more = step.also && document.querySelector(step.also);
+  if (more) {
+    const m = more.getBoundingClientRect();
+    top = Math.min(top, m.top); left = Math.min(left, m.left);
+    right = Math.max(right, m.right); bottom = Math.max(bottom, m.bottom);
+  }
+  const pad = 6;
+  top = Math.max(top - pad, 4); left = Math.max(left - pad, 4);
+  right = Math.min(right + pad, vw - 4); bottom = Math.min(bottom + pad, vh - 4);
+  // a part taller than the card leaves no room for it: its top is lit instead
+  const room = vh - 12 - gap - h;             // the lowest the lit part can end with the card under it
+  if (bottom > room && top - gap - h < 12 && right + gap + w > vw - 12) bottom = Math.max(room, top + 56);
+  Object.assign(tourSpot.style, { top: top + 'px', left: left + 'px',
+                                  width: (right - left) + 'px', height: (bottom - top) + 'px' });
+  const clampX = x => Math.round(Math.min(Math.max(x, 12), vw - w - 12));
+  const clampY = y => Math.round(Math.min(Math.max(y, 12), vh - h - 12));
+  let x, y;
+  if (right + gap + w <= vw - 12) { x = right + gap; y = clampY(top); }           // beside it
+  else if (bottom + gap + h <= vh - 12) { x = clampX(left); y = bottom + gap; }    // under it
+  else if (top - gap - h >= 12) { x = clampX(left); y = top - gap - h; }           // over it
+  else { x = clampX(left); y = clampY(top > vh / 2 ? 12 : vh - h - 12); }          // wherever it is not
+  tourCard.style.left = Math.round(x) + 'px';
+  tourCard.style.top = Math.round(y) + 'px';
+}
+function showTourStep(n) {
+  tourAt = n;
+  const step = TOUR[n];
+  $('tourFig').hidden = !step.img;
+  if (step.img) $('tourImg').src = `/static/tour/${step.img}.jpg`;
+  $('tourCount').textContent = `${n + 1} / ${TOUR.length}`;
+  $('tourTitle').textContent = step.title;
+  $('tourBody').textContent = step.text;
+  $('tourDots').innerHTML = TOUR.map((_, i) => `<i class="${i === n ? 'on' : ''}"></i>`).join('');
+  $('tourBack').hidden = n === 0;
+  $('tourSkip').hidden = n === TOUR.length - 1;
+  $('tourNext').textContent = n === TOUR.length - 1 ? 'เริ่มใช้งาน' : 'ถัดไป';
+  // on a phone the sidebar is a drawer: out for the steps that are in it
+  const drawer = narrow.matches && !!step.side;
+  const moved = drawer !== document.body.classList.contains('menu-open');
+  menu(drawer);
+  placeTour();
+  if (moved) setTimeout(placeTour, 260);       // once the drawer has finished sliding
+  $('tourNext').focus();
+}
+function endTour() {
+  tourAt = -1;
+  tour.hidden = true;
+  menu(false);
+  localStorage.setItem(TOUR_KEY, 'seen');
+}
+function startTour() {
+  document.querySelectorAll('.modal:not([hidden])').forEach(m => showModal(m, false));
+  newChat();                                   // the first screen, whatever was open
+  input.blur();                                // or a phone raises its keyboard over the tour
+  tour.hidden = false;
+  showTourStep(0);
+}
+$('tourImg').onerror = () => { $('tourFig').hidden = true; placeTour(); };
+$('tourImg').onload = placeTour;
+$('tourNext').onclick = () => (tourAt < TOUR.length - 1 ? showTourStep(tourAt + 1) : endTour());
+$('tourBack').onclick = () => showTourStep(tourAt - 1);
+$('tourSkip').onclick = endTour;
+$('startTour').onclick = startTour;
+addEventListener('resize', placeTour);
+document.addEventListener('keydown', e => {
+  if (tourAt < 0) return;
+  if (e.key === 'Escape') endTour();
+  if (e.key === 'ArrowRight' && tourAt < TOUR.length - 1) showTourStep(tourAt + 1);
+  if (e.key === 'ArrowLeft' && tourAt > 0) showTourStep(tourAt - 1);
+});
+
 applySettings();
+// a first visit is shown round; a link that carries a question is not held up
+if (!localStorage.getItem(TOUR_KEY) && !new URLSearchParams(location.search).get('q')) {
+  setTimeout(startTour, 600);
+}
 </script>
 </body>
 </html>

@@ -104,6 +104,7 @@ repo นี้เป็น public
 | `data/index/network_*` | `python -m ingest.build_book_index` |
 | `web/figures/*` / `data/processed/figures_network.json` | `python -m ingest.extract_figures` (ต้องใช้ macOS) |
 | `web/exercises/*` / `data/processed/exercises_network.json` | `python -m ingest.extract_exercises` (เฉลยแก้ที่ `ingest/exercise_key_network.md`) |
+| `web/tour/*.jpg` (รูปประกอบทัวร์แนะนำหน้าจอ 720×405 สร้างด้วย codex image generation แล้วย่อด้วย PIL ชื่อไฟล์ตรงกับ `img` ใน `TOUR` ของ `web/index.html`) | สร้างรูปใหม่แล้วย่อทับ ไม่มีสคริปต์ |
 | `web/book/*` (รูปทุกหน้าของหนังสือ + `pages.json` ที่ตัวอ่านหนังสือบนเว็บใช้ ตั้งชื่อตามเลขหน้าที่พิมพ์ ไฟล์สแกนขาดหน้า 226 และ 262) | `python -m ingest.extract_book_pages` |
 | `data/eval/แบบทดสอบแชทบอทเครือข่าย.xlsx` | `python -m ingest.export_book_test` (ลง Google Sheet: `ingest.push_book_test`) ช่องคะแนนเว้นว่างให้คนกรอก |
 | `assets/network/*.png` / `web/logo-network.png` | เรนเดอร์จาก `assets/network/logo.html` และ `richmenu.html` |
